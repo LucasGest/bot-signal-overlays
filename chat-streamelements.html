@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<!-- Sécurité : scripts et fichiers de ce site seulement. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self'; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>Chat StreamElements · Community Event</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@700&display=swap">
+<link rel="stylesheet" href="installer.css">
+</head>
+<body>
+<main>
+  <div class="kicker">📡 La Community Event · Chat StreamElements</div>
+  <h1>Le chat de l'event dans ton StreamElements</h1>
+
+  <section class="card">
+    <h2><span class="num">1</span> Créer l'overlay</h2>
+    <ol>
+      <li>Connecte-toi sur <b>streamelements.com</b> avec ton compte Twitch.</li>
+      <li><b>Streaming tools → Overlays</b>, puis <b>New overlay</b>, en <b>1920 × 1080</b>.</li>
+      <li>Renomme-le <b>Community Event</b> (en haut, à la place de « Unnamed overlay »).</li>
+      <li>Clique le <b>+</b> bleu, puis <b>Static / Custom → Custom widget</b>.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">2</span> Coller le code</h2>
+    <p class="muted">Clique le widget, puis <b>Settings → Open editor</b>. Pour chaque onglet : clique « Copier » ici, puis dans l'onglet du même nom, efface tout (Ctrl+A) et colle (Ctrl+V).</p>
+    <div class="copy-list">
+      <div class="copy-row"><span>Onglet <b>HTML</b></span><button class="copy" data-file="streamelements/chat.html">Copier le HTML</button></div>
+      <div class="copy-row"><span>Onglet <b>CSS</b></span><button class="copy" data-file="streamelements/chat.css">Copier le CSS</button></div>
+      <div class="copy-row"><span>Onglet <b>JS</b></span><button class="copy" data-file="streamelements/chat.js">Copier le JS</button></div>
+      <div class="copy-row"><span>Onglet <b>Fields</b></span><button class="copy" data-file="streamelements/fields.json">Copier les Fields</button></div>
+    </div>
+    <p class="muted">Puis clique <b>Done</b>. Les 4 onglets doivent être remplis : un onglet oublié et le chat reste vide.</p>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">3</span> Placer le widget et enregistrer</h2>
+    <ol>
+      <li>Dans <b>Position, size and style</b> : <b>Width</b> <code>470</code> · <b>Height</b> <code>558</code> · <b>Top</b> <code>466</code> · <b>Left</b> <code>1390</code>.</li>
+      <li>Clique <b>SAVE</b>.</li>
+      <li>Pour tester : <b>PREVIEW</b>, puis écris quelques messages dans ton chat Twitch.</li>
+    </ol>
+  </section>
+
+  <section class="card">
+    <h2><span class="num">4</span> Le mettre dans OBS</h2>
+    <ol>
+      <li>Dans <b>My Overlays</b>, clique <b>···</b> sur « Community Event », puis <b>Copy URL</b>. Cette adresse est personnelle : ne la montre pas en stream.</li>
+      <li>Ouvre l'installateur OBS (<code>/overlay lien</code> sur Discord), connecte-toi, colle l'adresse dans <b>Adresse de ton chat StreamElements</b>, puis <b>Installer dans OBS</b>.</li>
+    </ol>
+    <p class="muted">Le chat se place tout seul dans la scène Pause, sous ta webcam.</p>
+  </section>
+
+  <div id="status" class="status" hidden></div>
+</main>
+<script src="chat-streamelements.js"></script>
+</body>
+</html>
