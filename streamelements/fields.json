@@ -1,0 +1,11 @@
+{
+  "accent": { "type": "colorpicker", "label": "Couleur de l'event", "value": "#9b8cff" },
+  "taille": { "type": "number", "label": "Taille du texte (px)", "value": 21, "min": 12, "max": 48, "step": 1 },
+  "opacite": { "type": "number", "label": "Opacité des bulles (0 à 1)", "value": 0.62, "min": 0, "max": 1, "step": 0.02 },
+  "max": { "type": "number", "label": "Messages affichés au maximum", "value": 12, "min": 1, "max": 50, "step": 1 },
+  "duree": { "type": "number", "label": "Disparition après (secondes, 0 = jamais)", "value": 0, "min": 0, "max": 600, "step": 5 },
+  "titre": { "type": "dropdown", "label": "Titre « Le chat »", "value": "oui", "options": { "oui": "Afficher", "non": "Masquer" } },
+  "badges": { "type": "dropdown", "label": "Badges (modo, sub…)", "value": "oui", "options": { "oui": "Afficher", "non": "Masquer" } },
+  "commandes": { "type": "dropdown", "label": "Commandes (!event, !signal…)", "value": "oui", "options": { "oui": "Afficher", "non": "Masquer" } },
+  "ignores": { "type": "text", "label": "Pseudos ignorés (séparés par des virgules)", "value": "streamelements, nightbot, moobot, wizebot" }
+}

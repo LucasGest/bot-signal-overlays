@@ -243,7 +243,7 @@ body[data-coin="hg"] .ticker, body[data-coin="hd"] .ticker { left: 40px; }
 .chat li { font-size: 21px; line-height: 1.4; overflow-wrap: anywhere; animation: pop .45s cubic-bezier(.2, .9, .3, 1.2); }
 .chat li b { font-weight: 700; margin-right: 10px; color: var(--gt); }
 .chat li.empty { color: var(--muted); font-size: 18px; }
-.chat.ext ul { visibility: hidden; } /* chat=ext : les messages viennent de StreamElements, posé par-dessus dans OBS */
+.chat.ext { visibility: hidden; } /* chat=ext : le chat StreamElements de l'event occupe la zone (posé par-dessus dans OBS) */
 .scene.with-chat .scene-main, .scene.with-cam .scene-main { margin-right: 530px; max-width: 1250px; }
 .scene.with-chat .scene-bar, .scene.with-cam .scene-bar { left: 60px; transform: none; width: 1270px; }
 .scene.with-chat .scene-waves, .scene.with-cam .scene-waves { left: 36%; }

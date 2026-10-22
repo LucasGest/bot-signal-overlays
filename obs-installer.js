@@ -140,10 +140,6 @@
   /** Adresse d'un overlay StreamElements (chaque streamer a la sienne, dans son compte). */
   const SE_URL = /^https:\/\/streamelements\.com\/overlay\/[A-Za-z0-9]+\/[A-Za-z0-9_.-]+$/;
 
-  /** Zone du chat StreamElements dans la scène Pause : l'intérieur du panneau « Le chat » (voir .chat dans overlay.css). */
-  function seChatRect(cam) {
-    return cam ? { x: 1402, y: 522, w: 446, h: 490 } : { x: 1402, y: 196, w: 446, h: 816 };
-  }
 
   /**
    * Installe (ou met à jour) les overlays.
@@ -296,26 +292,8 @@
         await obs.request('RemoveInput', { inputName: NAMES.camFrame }).catch(() => {}); // cadre décoché : source retirée
       }
       if (seUrl) {
-        const sceneName = NAMES.scenes.pause[0];
-        const r = seChatRect(options.cam !== false);
-        const inputSettings = { url: seUrl, width: r.w, height: r.h, reroute_audio: true, shutdown: false, restart_when_active: false };
-        let id;
-        try {
-          id = (await obs.request('CreateInput', { sceneName, inputName: NAMES.seChat, inputKind: 'browser_source', inputSettings, sceneItemEnabled: true })).sceneItemId;
-        } catch (err) {
-          if (err.obsCode !== 601) throw err;
-          await obs.request('SetInputSettings', { inputName: NAMES.seChat, inputSettings });
-          const { sceneItems } = await obs.request('GetSceneItemList', { sceneName });
-          id = sceneItems.find((i) => i.sourceName === NAMES.seChat)?.sceneItemId
-            ?? (await obs.request('CreateSceneItem', { sceneName, sourceName: NAMES.seChat, sceneItemEnabled: true })).sceneItemId;
-        }
-        await obs.request('SetSceneItemTransform', {
-          sceneName, sceneItemId: id,
-          sceneItemTransform: { positionX: r.x * (W / 1920), positionY: r.y * (H / 1080), alignment: 5, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsAlignment: 0,
-            boundsWidth: r.w * (W / 1920), boundsHeight: r.h * (H / 1080), rotation: 0 },
-        });
-        const { sceneItems } = await obs.request('GetSceneItemList', { sceneName });
-        await obs.request('SetSceneItemIndex', { sceneName, sceneItemId: id, sceneItemIndex: sceneItems.length - 1 });
+        // Overlay StreamElements en 1920×1080 : plein écran, au-dessus de la page (le widget y est déjà placé à l'endroit du chat).
+        await upsert(NAMES.scenes.pause[0], NAMES.seChat, seUrl);
         log('✓ Chat StreamElements placé dans la scène Pause');
         done.seChat = true;
       }

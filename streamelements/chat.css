@@ -1,0 +1,40 @@
+/* Chat de la Community Event — widget StreamElements (onglet CSS). Même DA que les overlays du Bot Signal :
+   sombre, verre dépoli, violet #9b8cff, Space Grotesk / JetBrains Mono / Inter. Les {{…}} viennent des champs du widget. */
+:root {
+  --ink: #f2f2f7;
+  --muted: rgba(242, 242, 247, .62);
+  --accent: {{accent}};
+  --glass: rgba(14, 15, 19, {{opacite}});
+  --size: {{taille}}px;
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; background: transparent; }
+body { font-family: 'Inter', system-ui, sans-serif; color: var(--ink); -webkit-font-smoothing: antialiased; }
+
+.ce-chat { position: absolute; inset: 0; display: flex; flex-direction: column; padding: 4px; }
+.ce-head { display: flex; align-items: center; gap: 10px; padding: 4px 6px 12px; font-family: 'JetBrains Mono', monospace; font-size: calc(var(--size) * .7);
+  letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.ce-head .ce-title { color: var(--ink); }
+.ce-head .ce-event { margin-left: auto; color: var(--accent); }
+.ce-mark { width: 1.6em; height: 1.6em; fill: none; stroke: var(--accent); stroke-width: 2.2; stroke-linecap: round; }
+.ce-mark circle { fill: var(--accent); stroke: none; }
+.ce-chat.sans-titre .ce-head { display: none; }
+
+.ce-list { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; overflow: hidden;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 60px); mask-image: linear-gradient(to bottom, transparent 0, #000 60px); }
+
+.ce-msg { position: relative; padding: 10px 14px 10px 16px; border-radius: 14px; background: var(--glass); border: 1px solid rgba(255, 255, 255, .10);
+  backdrop-filter: blur(14px); font-size: var(--size); line-height: 1.4; overflow-wrap: anywhere;
+  animation: ce-pop .45s cubic-bezier(.2, .9, .3, 1.2) both; }
+.ce-msg::before { content: ''; position: absolute; left: 0; top: 10px; bottom: 10px; width: 3px; border-radius: 3px; background: var(--c, var(--accent)); }
+.ce-msg.out { animation: ce-out .35s ease forwards; }
+.ce-who { display: inline-flex; align-items: center; gap: 5px; margin-right: 8px; vertical-align: middle; }
+.ce-who b { font-family: 'Space Grotesk', 'Inter', sans-serif; font-weight: 700; color: var(--c, var(--accent)); }
+.ce-badge { height: 1.05em; width: auto; }
+.ce-emote { height: 1.6em; width: auto; vertical-align: middle; margin: -.3em 1px; }
+.ce-text.action { font-style: italic; color: var(--c, var(--ink)); }
+/* Le streamer et ses modos ressortent un peu ; l'orange reste réservé aux alertes de l'event. */
+.ce-msg.streamer { border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+
+@keyframes ce-pop { from { opacity: 0; transform: translateY(12px) scale(.97); } to { opacity: 1; transform: none; } }
+@keyframes ce-out { to { opacity: 0; transform: translateX(-16px); } }
