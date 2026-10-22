@@ -169,29 +169,40 @@
 
   // ───────────── Scènes plein écran ─────────────
   const SCENES = {
-    debut: (s) => ({
-      kicker: `📡 ${s.event.nom}`,
-      title: 'Ça commence bientôt',
-      text: s.event.etat === 'avant' ? "Lancement de l'event dans" : 'Installe-toi : le Signal peut tomber à tout moment 👀',
-      extra: s.event.etat === 'avant' && s.event.debut && s.event.debut > now() ? countdown(s.event.debut - now()) : '',
-    }),
+    debut: (s) => {
+      // Avant l'event : compte à rebours tant que la date de début n'est pas passée, puis « imminent ».
+      const left = s.event.etat === 'avant' && s.event.debut ? s.event.debut - now() : 0;
+      return {
+        badge: '📡',
+        kicker: s.event.nom,
+        title: 'Ça commence bientôt',
+        text: s.event.etat !== 'avant' ? 'Installe-toi : le Signal peut tomber à tout moment 👀'
+          : left > 0 ? "Lancement de l'event dans" : "Lancement de l'event imminent 🚀",
+        extra: left > 0 ? countdown(left) : '',
+      };
+    },
     pause: (s) => ({
-      kicker: `📡 ${s.event.nom}`,
+      badge: '☕',
+      kicker: s.event.nom,
       title: 'Petite pause',
-      text: "Je reviens très vite ☕<br>Pendant ce temps, l'event continue sur les autres chaînes.",
+      text: "Je reviens très vite !<br>Pendant ce temps, l'event continue sur les autres chaînes.",
     }),
     veille: (s) => ({
-      kicker: `📡 ${s.event.nom}`,
+      badge: '🌙',
+      kicker: s.event.nom,
       title: 'En veille',
       text: "Le streamer recharge les batteries 😴<br>L'event continue sur les autres chaînes de l'escouade.",
     }),
     fin: (s) => {
       const others = s.enLive.filter((x) => !x.moi);
       const rank = s.classement.filter((x) => x.points > 0);
+      const next = others.length ? "<br>L'aventure continue en live chez :"
+        : '<br>On se retrouve très vite ! Tape <b>!event</b> dans le chat pour suivre la suite.';
       return {
-        kicker: `📡 ${s.event.nom}`,
+        badge: '💜',
+        kicker: s.event.nom,
         title: 'Fin du stream',
-        text: `Merci d'être passé 💜${others.length ? "<br>L'aventure continue en live chez :" : ''}`,
+        text: `Merci d'être passé${next}`,
         extra: (others.length ? `<div class="scene-raid">${others.map((x) => `<span class="chip">${esc(x.pseudo)}</span>`).join('')}</div>` : '')
           + (rank.length ? `<div class="scene-rank glass">${rank.map((x, i) => `<b>${i + 1}</b><span class="${x.moi ? 'me' : ''}">${esc(x.pseudo)}</span><span class="pts">${x.points} pts</span>`).join('')}</div>` : ''),
       };
@@ -218,6 +229,8 @@
     const el = $('scene');
     el.hidden = false;
     el.dataset.scene = opt.scene;
+    $('scene-badge').textContent = sc.badge;
+    $('scene-clock').textContent = hour(now());
     $('scene-kicker').textContent = sc.kicker;
     $('scene-title').textContent = sc.title;
     setHtml($('scene-who'), `${esc(s.streamer.pseudo)}${s.streamer.frequence ? `<span class="mono">${esc(s.streamer.frequence)} MHz</span>` : ''}`);
