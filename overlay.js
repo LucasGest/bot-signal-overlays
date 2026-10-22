@@ -26,6 +26,7 @@
     cam: params.get('cam') !== '0',
     bandeau: params.get('bandeau') !== '0',
     chat: params.get('chat') !== '0',
+    chatExt: params.get('chat') === 'ext', // chat StreamElements posé par-dessus le panneau dans OBS
     demo: params.has('demo'),
     cadre: params.get('cadre') === 'pause',
   };
@@ -312,7 +313,8 @@
       $('cam').classList.toggle('hot', Boolean(s.alerte?.concerne));
       setHtml($('cam-tag'), camTag(s));
     }
-    if (withChat && !opt.demo && s.streamer.chaine) chat.start(s.streamer.chaine);
+    $('chat').classList.toggle('ext', opt.chatExt);
+    if (withChat && !opt.chatExt && !opt.demo && s.streamer.chaine) chat.start(s.streamer.chaine);
     stack.classList.add('over-scene');
   }
 

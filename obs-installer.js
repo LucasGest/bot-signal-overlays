@@ -11,6 +11,7 @@
     live: '📡 Event · En live',       // scène de stream de l'event (overlay déjà dedans, le streamer ajoute jeu et webcam)
     overlay: '📡 Overlay Event',
     camFrame: '📡 Cadre webcam · Pause', // au-dessus de la webcam dans la scène Pause
+    seChat: '📡 Chat StreamElements · Pause', // chat StreamElements du streamer, dans le panneau « Le chat »
     scenes: {
       debut: ['📡 Event · Commence bientôt', '📡 Overlay Event · Commence bientôt'],
       pause: ['📡 Event · Pause', '📡 Overlay Event · Pause'],
@@ -116,6 +117,7 @@
     if ((!scene || scene === 'pause') && options.cam === false) p.push('cam=0');
     if (!scene && options.bandeau === false) p.push('bandeau=0');
     if (scene === 'pause' && options.chat === false) p.push('chat=0');
+    if (scene === 'pause' && options.chat === 'ext') p.push('chat=ext'); // chat StreamElements posé par-dessus
     if (options.cadre) p.push(`cadre=${options.cadre}`);
     return `${siteUrl}/#${p.join('&')}`;
   }
@@ -134,6 +136,14 @@
    *  La page Pause est opaque : la webcam passe au-dessus, et le cadre (source à part) au-dessus d'elle,
    *  pour garder les coins arrondis. Comme en live, la webcam se cale 5 px à l'intérieur, sous la bordure. */
   const PAUSE_CAM = { x: 1395, y: 135, w: 460, h: 254 };
+
+  /** Adresse d'un overlay StreamElements (chaque streamer a la sienne, dans son compte). */
+  const SE_URL = /^https:\/\/streamelements\.com\/overlay\/[A-Za-z0-9]+\/[A-Za-z0-9_.-]+$/;
+
+  /** Zone du chat StreamElements dans la scène Pause : l'intérieur du panneau « Le chat » (voir .chat dans overlay.css). */
+  function seChatRect(cam) {
+    return cam ? { x: 1402, y: 522, w: 446, h: 490 } : { x: 1402, y: 196, w: 446, h: 816 };
+  }
 
   /**
    * Installe (ou met à jour) les overlays.
@@ -258,13 +268,24 @@
     const sceneNames = new Set(existing.map((s) => s.sceneName));
     const done = { scenes: [], overlay: [] };
 
+    // Chat StreamElements de la Pause : nouvelle adresse collée, sinon celle déjà installée (réinstallation).
+    let seUrl = '';
+    if (scenes && options.chat !== false) {
+      seUrl = (options.seChat || '').trim();
+      if (seUrl && !SE_URL.test(seUrl)) throw new InstallError('chat-se');
+      if (!seUrl) {
+        try { seUrl = (await obs.request('GetInputSettings', { inputName: NAMES.seChat })).inputSettings.url || ''; } catch { /* pas encore installé */ }
+      }
+    }
+    if (scenes && !seUrl) await obs.request('RemoveInput', { inputName: NAMES.seChat }).catch(() => {}); // chat décoché
+
     if (scenes) {
       for (const [scene, [sceneName, inputName]] of Object.entries(NAMES.scenes)) {
         if (!sceneNames.has(sceneName)) {
           await obs.request('CreateScene', { sceneName });
           sceneNames.add(sceneName);
         }
-        const what = await upsert(sceneName, inputName, sourceUrl(siteUrl, key, scene, options));
+        const what = await upsert(sceneName, inputName, sourceUrl(siteUrl, key, scene, seUrl ? { ...options, chat: 'ext' } : options));
         log(`✓ Scène « ${sceneName.replace('📡 ', '')} » : source ${what}`);
         done.scenes.push(sceneName);
       }
@@ -273,6 +294,30 @@
         log(`✓ Cadre webcam de la Pause : source ${what}`);
       } else {
         await obs.request('RemoveInput', { inputName: NAMES.camFrame }).catch(() => {}); // cadre décoché : source retirée
+      }
+      if (seUrl) {
+        const sceneName = NAMES.scenes.pause[0];
+        const r = seChatRect(options.cam !== false);
+        const inputSettings = { url: seUrl, width: r.w, height: r.h, reroute_audio: true, shutdown: false, restart_when_active: false };
+        let id;
+        try {
+          id = (await obs.request('CreateInput', { sceneName, inputName: NAMES.seChat, inputKind: 'browser_source', inputSettings, sceneItemEnabled: true })).sceneItemId;
+        } catch (err) {
+          if (err.obsCode !== 601) throw err;
+          await obs.request('SetInputSettings', { inputName: NAMES.seChat, inputSettings });
+          const { sceneItems } = await obs.request('GetSceneItemList', { sceneName });
+          id = sceneItems.find((i) => i.sourceName === NAMES.seChat)?.sceneItemId
+            ?? (await obs.request('CreateSceneItem', { sceneName, sourceName: NAMES.seChat, sceneItemEnabled: true })).sceneItemId;
+        }
+        await obs.request('SetSceneItemTransform', {
+          sceneName, sceneItemId: id,
+          sceneItemTransform: { positionX: r.x * (W / 1920), positionY: r.y * (H / 1080), alignment: 5, boundsType: 'OBS_BOUNDS_SCALE_INNER', boundsAlignment: 0,
+            boundsWidth: r.w * (W / 1920), boundsHeight: r.h * (H / 1080), rotation: 0 },
+        });
+        const { sceneItems } = await obs.request('GetSceneItemList', { sceneName });
+        await obs.request('SetSceneItemIndex', { sceneName, sceneItemId: id, sceneItemIndex: sceneItems.length - 1 });
+        log('✓ Chat StreamElements placé dans la scène Pause');
+        done.seChat = true;
       }
     }
 

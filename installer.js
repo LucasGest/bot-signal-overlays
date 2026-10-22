@@ -21,6 +21,7 @@
     connexion: 'Impossible de joindre OBS. Vérifie qu\'OBS est ouvert, que le serveur WebSocket est activé (étape 1) et que le port est le bon. Si ton navigateur demande l\'accès au réseau local, accepte.',
     'mot-de-passe': 'Mot de passe OBS incorrect. Recopie-le depuis « Afficher les informations de connexion ».',
     'mot-de-passe-requis': 'OBS demande un mot de passe : colle-le dans le champ ci-dessus.',
+    'chat-se': 'Adresse StreamElements non reconnue : elle doit commencer par https://streamelements.com/overlay/ (bouton « Copier l\'URL » de ton overlay StreamElements).',
     'source-navigateur': 'Ton OBS n\'a pas la source « Navigateur ». Installe la version complète d\'OBS (obsproject.com).',
   };
 
@@ -95,13 +96,15 @@
         addTo,
         scenes: $('scenes').checked,
         separate: separate(),
-        options: { coin: $('coin').value, theme: $('theme').value, son: $('son').checked, cam: $('cam').checked, bandeau: $('bandeau').checked, chat: $('chat').checked },
+        options: { coin: $('coin').value, theme: $('theme').value, son: $('son').checked, cam: $('cam').checked, bandeau: $('bandeau').checked, chat: $('chat').checked, seChat: $('se-chat').value },
       }, log);
       const camHint = !$('cam').checked ? ''
         : done.webcams.length ? `Webcam calée dans le cadre ✓ (${done.webcams.join(', ')})${done.pauseCam.length ? ', aussi dans la scène Pause' : ''}.\n`
           : 'Webcam : ajoute-la dans « Event · En live » (sous l\'overlay), puis relance l\'installation : elle sera calée dans le cadre toute seule.\n';
+      const chatHint = !$('chat').checked || done.seChat ? ''
+        : 'Chat de la Pause : celui de l\'overlay (colle l\'adresse de ton chat StreamElements et relance pour utiliser le tien).\n';
       if (done.collection) {
-        status(`C'est prêt ✓ OBS est passé sur le profil et la collection « ${done.collection} ».\n${camHint}Il te reste :\n`
+        status(`C'est prêt ✓ OBS est passé sur le profil et la collection « ${done.collection} ».\n${camHint}${chatHint}Il te reste :\n`
           + '1. Paramètres → Stream → « Connecter le compte » (Twitch) : le nouveau profil n\'a pas ta clé de stream, c\'est voulu.\n'
           + '2. Dans la scène « Event · En live » : ajoute ta capture de jeu et ton micro, sous l\'overlay.\n'
           + '3. Pour revenir à ta chaîne : menu Profil ET menu Collection de scènes → ton ancien nom.', 'ok');
