@@ -7,8 +7,14 @@
   const SITE = location.origin;
   const $ = (id) => document.getElementById(id);
   const params = new URLSearchParams(location.hash.slice(1));
-  const key = params.get('cle') || '';
-  // La clé ne reste pas visible dans l'adresse (captures d'écran, partage d'écran).
+  // La clé ne reste pas visible dans l'adresse (captures d'écran, partage d'écran) ; elle est gardée
+  // pour cet onglet seulement, pour qu'un rechargement (F5, Ctrl+F5) ne casse pas la page.
+  const memo = {
+    get() { try { return sessionStorage.getItem('cle') || ''; } catch { return ''; } },
+    set(v) { try { sessionStorage.setItem('cle', v); } catch { /* stockage bloqué : tant pis */ } },
+  };
+  const key = params.get('cle') || memo.get();
+  if (params.get('cle')) memo.set(key);
   if (key && history.replaceState) history.replaceState(null, '', location.pathname);
 
   const ERRORS = {
