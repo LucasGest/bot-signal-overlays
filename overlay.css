@@ -144,7 +144,9 @@ body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: anti
 .scene-waves i:nth-child(3) { animation-delay: 6s; }
 @keyframes sceneWave { 0% { transform: scale(.4); opacity: .14; } 100% { transform: scale(6); opacity: 0; } }
 
-.scene-clock { position: absolute; top: 48px; right: 60px; font-size: 30px; color: var(--muted); letter-spacing: .06em; }
+.scene-top { position: absolute; top: 44px; right: 60px; display: flex; align-items: center; gap: 26px; z-index: 1; }
+.scene-clock { font-size: 30px; color: var(--muted); letter-spacing: .06em; }
+.scene-logo { position: absolute; top: 40px; left: 60px; z-index: 1; }
 .scene-main { position: relative; text-align: center; max-width: 1500px; margin-top: -110px; }
 .scene-badge { width: 112px; height: 112px; margin: 0 auto 26px; border-radius: 50%; display: grid; place-items: center; font-size: 54px; animation: float 6s ease-in-out infinite; }
 @keyframes float { 50% { transform: translateY(-10px); } }
@@ -178,3 +180,70 @@ body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: anti
 .stack.over-scene { z-index: 2; bottom: 190px !important; top: auto !important; }
 
 .error { position: absolute; left: 40px; bottom: 40px; padding: 14px 20px; font-size: 16px; color: var(--alert); }
+
+/* ── Logos : image (logo-event.png, logo-bot.png) si présente, sinon logo texte animé (logos.js, GSAP) ── */
+.ev-logo img.logo, .bot-logo img.logo { display: none; }
+.has-img > img.logo { display: block; }
+.has-img > .logo-txt { display: none; }
+.ev-logo img.logo { height: 92px; width: auto; }
+.bot-logo img.logo { height: 34px; width: auto; }
+.ev-logo .logo-txt { position: relative; display: inline-grid; grid-template-columns: auto auto; align-items: end; column-gap: 12px; padding: 12px 20px 12px 18px; border-radius: 18px; overflow: hidden;
+  background: linear-gradient(135deg, rgba(124, 92, 255, .35), rgba(59, 130, 246, .22)); border: 1px solid rgba(255, 255, 255, .16); backdrop-filter: blur(14px); }
+.ev-small { grid-column: 1 / -1; font-family: var(--mono); font-size: 13px; letter-spacing: .3em; text-transform: uppercase; color: rgba(255, 255, 255, .78); }
+.ev-big { font-family: var(--title); font-size: 40px; font-weight: 700; line-height: 1; letter-spacing: -.01em; color: #fff; }
+.ev-num { font-family: var(--title); font-size: 40px; font-weight: 700; line-height: 1; display: inline-block;
+  background: linear-gradient(180deg, #fff 10%, #c4b5fd); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ev-shine { position: absolute; top: -20%; bottom: -20%; left: 0; width: 34%; transform: translateX(-160%) skewX(-18deg);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, .38), transparent); pointer-events: none; }
+:root[data-theme="clair"] .ev-small { color: rgba(21, 21, 28, .65); }
+:root[data-theme="clair"] .ev-big { color: #15151c; }
+:root[data-theme="clair"] .ev-num { background: linear-gradient(180deg, #6c5ce7, #3b82f6); -webkit-background-clip: text; background-clip: text; }
+
+.bot-logo .logo-txt { display: flex; align-items: center; gap: 8px; }
+.bot-mark { width: 34px; height: 34px; overflow: visible; }
+.bot-mark .bm-w { fill: none; stroke: var(--accent); stroke-width: 2.6; stroke-linecap: round; }
+.bot-mark .bm-dot { fill: #fff; filter: drop-shadow(0 0 4px var(--accent)); }
+:root[data-theme="clair"] .bot-mark .bm-dot { fill: var(--accent); }
+.bm-name { font-family: var(--title); font-size: 22px; font-weight: 700; letter-spacing: .04em; }
+
+/* ── Cadre de la webcam (overlay principal). La webcam d'OBS est calée dessous par l'installateur :
+   1432,40 → 448×252 (16:9) sur un écran 1920×1080, ou en haut à gauche si le widget est en haut à droite. ── */
+.cam { position: absolute; top: 40px; right: 40px; width: 448px; height: 252px; filter: drop-shadow(0 0 18px rgba(155, 140, 255, .45)); }
+body[data-coin="hd"] .cam { right: auto; left: 40px; }
+.cam-frame { position: absolute; inset: 0; border-radius: 16px; padding: 8px; background: linear-gradient(135deg, #9b8cff, #5b8cff 35%, #c084fc 70%, #9b8cff); background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask-composite: exclude; animation: camGlow 9s linear infinite; }
+@keyframes camGlow { to { background-position: 300% 300%; } }
+.cam.hot { filter: drop-shadow(0 0 22px rgba(255, 122, 26, .6)); }
+.cam.hot .cam-frame { background-image: linear-gradient(135deg, #ff7a1a, #ffb36b 40%, #ff7a1a 70%, #ffb36b); animation-duration: 3s; }
+.cam-logo { position: absolute; top: -18px; left: -18px; transform: scale(.74); transform-origin: top left; }
+.cam-tag { position: absolute; left: 50%; bottom: -24px; transform: translateX(-50%); padding: 9px 20px; border-radius: 99px; white-space: nowrap; font-size: 19px; display: flex; align-items: center; gap: 10px; }
+.cam-tag b { font-family: var(--title); font-size: 21px; }
+.cam-tag .mono { color: var(--muted); font-size: 16px; }
+.cam-tag .dot, .chat .dot { width: 10px; height: 10px; border-radius: 50%; background: #ff4d4f; animation: blink 1.6s infinite; }
+
+/* ── Bandeau défilant (overlay principal), à côté du widget ── */
+.ticker { position: absolute; bottom: 40px; left: 500px; right: 40px; height: 58px; border-radius: 16px; display: flex; align-items: center; overflow: hidden; }
+body[data-coin="bd"] .ticker { left: 40px; right: 500px; }
+body[data-coin="hg"] .ticker, body[data-coin="hd"] .ticker { left: 40px; }
+.ticker-brand { flex: none; height: 100%; display: flex; align-items: center; padding: 0 20px 0 16px; border-right: 1px solid var(--glass-border); background: rgba(124, 92, 255, .14); }
+.ticker-view { flex: 1; overflow: hidden; height: 100%; display: flex; align-items: center;
+  -webkit-mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); mask: linear-gradient(90deg, transparent, #000 5%, #000 95%, transparent); }
+.ticker-track { display: flex; white-space: nowrap; animation: tick 40s linear infinite; will-change: transform; }
+.tk-run { display: flex; align-items: center; font-size: 19px; color: var(--muted); }
+.tk-run b { color: var(--ink); font-weight: 600; }
+.tk-run b.mono { font-weight: 500; }
+.tk-run b.hot { color: var(--alert); }
+.tk-sep { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); margin: 0 30px; flex: none; }
+@keyframes tick { to { transform: translateX(-50%); } }
+
+/* ── Chat Twitch (scène pause) : colonne de droite, le texte de la scène se décale à gauche ── */
+.chat { position: absolute; top: 140px; right: 60px; bottom: 56px; width: 470px; padding: 22px 24px; display: flex; flex-direction: column; text-align: left; z-index: 1; }
+.chat .kicker { font-size: 16px; }
+.chat ul { list-style: none; margin: 16px 0 0; padding: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 12px; overflow: hidden;
+  -webkit-mask: linear-gradient(transparent, #000 22%); mask: linear-gradient(transparent, #000 22%); }
+.chat li { font-size: 21px; line-height: 1.4; overflow-wrap: anywhere; animation: pop .45s cubic-bezier(.2, .9, .3, 1.2); }
+.chat li b { font-weight: 700; margin-right: 10px; color: var(--gt); }
+.chat li.empty { color: var(--muted); font-size: 18px; }
+.scene.with-chat .scene-main { margin-right: 530px; max-width: 1250px; }
+.scene.with-chat .scene-bar { left: 60px; transform: none; width: 1270px; }
+.scene.with-chat .scene-waves { left: 36%; }

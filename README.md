@@ -22,6 +22,12 @@ Chaque streamer reçoit **son** lien sur Discord avec `/overlay lien` (clé secr
 
 Scènes plein écran : `&scene=debut` (commence bientôt) · `&scene=pause` · `&scene=veille` (sommeil) · `&scene=fin` (fin du stream)
 Autres options · `&coin=bd` / `hg` / `hd` · `&theme=clair` · `&son=0`
+Overlay principal (scène « En live ») : cadre de la webcam en haut à droite (en haut à gauche si `coin=hd`) et bandeau défilant en bas · `&cam=0` · `&bandeau=0`. L'installateur cale toute source webcam de la scène dans le cadre (relancer l'installation après avoir ajouté la webcam).
+Scène pause : chat Twitch de la chaîne en lecture seule (connexion anonyme, messages supprimés par la modération retirés aussi) · `&chat=0`. Aperçu : `#demo&scene=pause&chaine=nomdelachaine`.
+
+## Logos
+
+Par défaut, logos texte animés avec GSAP (`vendor/gsap.min.js`, hébergé ici car la page n'accepte aucun script externe) : « La Community Event #2 » et l'antenne « Signal » du bot. Pour mettre les vrais logos : déposer **`logo-event.png`** et **`logo-bot.png`** (fond transparent) à côté d'`index.html` ; ils remplacent les logos texte automatiquement.
 Aperçu sans clé, tous les écrans à la suite : `https://<site>/#demo` (ou `#demo=vote`, `alerte`, `partie`, `fin`, `bientot`…).
 
 ## Mise en ligne (Render, Static Site gratuit)

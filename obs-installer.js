@@ -105,14 +105,27 @@
     close() { try { this.ws?.close(); } catch { /* déjà fermé */ } }
   }
 
-  /** Adresse d'une source : site des overlays + clé + scène + options (coin, thème, son). */
+  /** Adresse d'une source : site des overlays + clé + scène + options (coin, thème, son, cadre webcam, bandeau, chat). */
   function sourceUrl(siteUrl, key, scene, options = {}) {
     const p = [`cle=${key}`];
     if (scene) p.push(`scene=${scene}`);
     if (options.coin && options.coin !== 'bg') p.push(`coin=${options.coin}`);
     if (options.theme === 'clair') p.push('theme=clair');
     if (options.son === false) p.push('son=0');
+    if (!scene && options.cam === false) p.push('cam=0');
+    if (!scene && options.bandeau === false) p.push('bandeau=0');
+    if (scene === 'pause' && options.chat === false) p.push('chat=0');
     return `${siteUrl}/#${p.join('&')}`;
+  }
+
+  /** Types de sources « webcam » d'OBS (Windows, Mac, Linux). */
+  const WEBCAM_KINDS = new Set(['dshow_input', 'av_capture_input', 'av_capture_input_v2', 'macos_avcapture', 'macos_avcapture_fast', 'v4l2_input']);
+
+  /** Cadre de la webcam dessiné par l'overlay, en pixels d'un écran 1920×1080 (voir .cam dans overlay.css). */
+  function camRect(coin) {
+    // Le cadre fait 448×252 avec une bordure de 8 px : la webcam se cale 5 px à l'intérieur, sous la bordure.
+    const x = coin === 'hd' ? 40 : 1432;
+    return { x: x + 5, y: 45, w: 438, h: 242 };
   }
 
   /**
@@ -269,6 +282,25 @@
       } catch { /* pas encore créé : rien à faire */ }
     }
 
+    // Webcam déjà présente dans la scène de l'overlay : calée dans le cadre, sous l'overlay.
+    done.webcams = [];
+    if (options.cam !== false && targets.length) {
+      const r = camRect(options.coin);
+      const k = W / 1920;
+      for (const sceneName of targets) {
+        const { sceneItems } = await obs.request('GetSceneItemList', { sceneName });
+        for (const it of sceneItems.filter((i) => WEBCAM_KINDS.has(i.inputKind))) {
+          await obs.request('SetSceneItemTransform', {
+            sceneName, sceneItemId: it.sceneItemId,
+            sceneItemTransform: { positionX: r.x * k, positionY: r.y * (H / 1080), alignment: 5, boundsType: 'OBS_BOUNDS_SCALE_OUTER', boundsAlignment: 0,
+              boundsWidth: r.w * k, boundsHeight: r.h * (H / 1080), cropToBounds: true, rotation: 0 },
+          });
+          log(`✓ Webcam « ${it.sourceName} » calée dans le cadre (${sceneName.replace('📡 ', '')})`);
+          done.webcams.push(it.sourceName);
+        }
+      }
+    }
+
     if (separate) {
       // Nouvelle collection : OBS y met une scène vide par défaut (« Scène »), inutile ici.
       if (newCollection) {
@@ -287,5 +319,5 @@
     return done;
   }
 
-  root.ObsInstaller = { ObsClient, install, sourceUrl, authString, NAMES, InstallError };
+  root.ObsInstaller = { ObsClient, install, sourceUrl, camRect, authString, NAMES, InstallError };
 })(typeof window !== 'undefined' ? window : globalThis);

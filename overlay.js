@@ -7,7 +7,11 @@
 //   coin=bg|bd|hg|hd    coin du widget (bas-gauche par défaut)
 //   theme=clair         cartes claires (packs blancs / minimalistes)
 //   son=0               sans le son de l'alerte
+//   cam=0               sans le cadre de la webcam (overlay principal)
+//   bandeau=0           sans le bandeau défilant (overlay principal)
+//   chat=0              sans le chat Twitch (scène pause)
 //   demo                aperçu sans clé : fait défiler tous les écrans (pour placer l'overlay dans OBS)
+//   chaine=nom          avec demo et scene=pause : affiche le vrai chat de cette chaîne
 'use strict';
 
 (() => {
@@ -18,6 +22,9 @@
     coin: ['bg', 'bd', 'hg', 'hd'].includes(params.get('coin')) ? params.get('coin') : 'bg',
     theme: params.get('theme') === 'clair' ? 'clair' : 'sombre',
     son: params.get('son') !== '0',
+    cam: params.get('cam') !== '0',
+    bandeau: params.get('bandeau') !== '0',
+    chat: params.get('chat') !== '0',
     demo: params.has('demo'),
   };
   // La clé ne reste pas visible dans l'adresse (historique, captures).
@@ -27,6 +34,15 @@
   const $ = (id) => document.getElementById(id);
   const stack = $('stack');
   stack.dataset.coin = opt.coin;
+  document.body.dataset.coin = opt.coin;
+
+  // Logos (logo-event.png, logo-bot.png à côté de la page) : sans fichier, le logo texte reste affiché.
+  for (const img of document.querySelectorAll('img[data-logo]')) {
+    const ok = () => img.parentElement.classList.add('has-img');
+    if (img.complete && img.naturalWidth) ok();
+    img.addEventListener('load', ok);
+    img.addEventListener('error', () => img.remove());
+  }
 
   const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const pad = (n) => String(n).padStart(2, '0');
@@ -36,6 +52,7 @@
     return (h ? `${pad(h)}:` : '') + `${pad(Math.floor((t % 3600) / 60))}:${pad(t % 60)}`;
   };
   const hour = (ms) => new Date(ms).toLocaleTimeString('fr-FR', { timeZone: 'Europe/Paris', hour: '2-digit', minute: '2-digit' });
+  const day = (ms) => new Date(ms).toLocaleString('fr-FR', { timeZone: 'Europe/Paris', weekday: 'long', day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' });
 
   let snap = null;
   let offset = 0; // heure du serveur − heure de la machine
@@ -224,6 +241,48 @@
     return `${gauge}<div class="sep"></div>${live}`;
   }
 
+  // ───────────── Scène de live : cadre webcam et bandeau défilant ─────────────
+  function camTag(s) {
+    return `${s.live ? '<span class="dot"></span>' : ''}<b>${esc(s.streamer.pseudo)}</b>${s.streamer.frequence ? `<span class="mono">${esc(s.streamer.frequence)} MHz</span>` : ''}`;
+  }
+
+  function tickerItems(s) {
+    const items = [];
+    const a = s.alerte;
+    if (a) items.push(`<b class="hot">⚡ ${esc(a.libelle)} en cours${a.escouade ? ` · escouade ${esc(a.escouade)}` : ''}${a.jeu ? ` · ${esc(a.jeu)}` : ''}</b>`);
+    items.push(`<b>${esc(s.event.nom)}</b>`);
+    if (s.event.etat === 'avant' && s.event.debut) items.push(`Lancement ${esc(day(s.event.debut))}`);
+    if (s.event.etat === 'termine') items.push('Event terminé · merci à tous 💜');
+    if (s.streamer.frequence) items.push(`Fréquence de ${esc(s.streamer.pseudo)} : <b class="mono">${esc(s.streamer.frequence)} MHz</b>`);
+    if (s.jauge) items.push(`Jauge escouade ${esc(s.streamer.escouade)} : <b class="mono">${s.jauge.points}/${s.jauge.seuil}</b>`);
+    const rank = s.classement.filter((x) => x.points > 0).slice(0, 3);
+    if (rank.length) items.push(`🏆 ${rank.map((x, i) => `${i + 1}. <b>${esc(x.pseudo)}</b> ${x.points} pts`).join('  ')}`);
+    const others = s.enLive.filter((x) => !x.moi);
+    if (others.length) items.push(`🔴 Aussi en live : <b>${esc(others.map((x) => x.pseudo).join(' · '))}</b>`);
+    items.push('Tape <b class="mono">!event</b> dans le chat pour tout savoir');
+    return items.map((x) => `<span>${x}</span><i class="tk-sep"></i>`).join('');
+  }
+
+  function renderLive(s) {
+    const cam = $('cam');
+    cam.hidden = !opt.cam;
+    if (opt.cam) {
+      cam.classList.toggle('hot', Boolean(s.alerte?.concerne));
+      setHtml($('cam-tag'), camTag(s));
+    }
+    $('ticker').hidden = !opt.bandeau;
+    if (opt.bandeau) {
+      const items = tickerItems(s);
+      const track = $('ticker-track');
+      if (track.dataset.items !== items) {
+        track.dataset.items = items;
+        // Texte en double pour une boucle sans à-coup ; vitesse constante (~90 px/s), quelle que soit la longueur.
+        track.innerHTML = `<div class="tk-run">${items}</div><div class="tk-run">${items}</div>`;
+        track.style.animationDuration = `${Math.max(20, track.firstElementChild.scrollWidth / 90)}s`;
+      }
+    }
+  }
+
   function renderScene(s) {
     const sc = SCENES[opt.scene](s);
     const el = $('scene');
@@ -237,6 +296,10 @@
     setHtml($('scene-text'), sc.text);
     setHtml($('scene-extra'), sc.extra || '');
     setHtml($('scene-bar'), sceneBar(s));
+    const withChat = opt.scene === 'pause' && opt.chat;
+    el.classList.toggle('with-chat', withChat);
+    $('chat').hidden = !withChat;
+    if (withChat && !opt.demo && s.streamer.chaine) chat.start(s.streamer.chaine);
     stack.classList.add('over-scene');
   }
 
@@ -244,6 +307,7 @@
     const s = snap;
     if (!s) return;
     if (opt.scene) renderScene(s);
+    else renderLive(s);
     if (s.alerte?.concerne) intro(s.alerte);
     // Sur une scène plein écran, le coin permanent est remplacé par le bandeau de la scène ;
     // seule l'alerte (si elle concerne le streamer) reste affichée par-dessus.
@@ -259,6 +323,74 @@
       setHtml(p, panel[1]);
     }
   }
+
+  // ───────────── Chat Twitch (scène pause) : lecture seule, anonyme, aucun compte ─────────────
+  const chat = (() => {
+    const list = $('chat-list');
+    const MAX = 14;
+    let login = null;
+    let ws = null;
+    let delay = 2000;
+    const tags = (raw) => Object.fromEntries(raw.slice(1).split(';').map((kv) => {
+      const i = kv.indexOf('=');
+      return [kv.slice(0, i), kv.slice(i + 1).replace(/\\s/g, ' ')];
+    }));
+    function add(name, color, text, id, user) {
+      list.querySelector('.empty')?.remove();
+      const li = document.createElement('li');
+      li.dataset.id = id || '';
+      li.dataset.user = user || '';
+      const b = document.createElement('b');
+      b.textContent = name;
+      if (/^#[0-9a-f]{6}$/i.test(color || '')) b.style.color = color;
+      li.append(b, document.createTextNode(text)); // texte affiché tel quel, jamais interprété comme du HTML
+      list.append(li);
+      while (list.children.length > MAX) list.firstElementChild.remove();
+    }
+    function onLine(line) {
+      if (line.startsWith('PING')) return ws.send('PONG :tmi.twitch.tv');
+      if (/ 366 /.test(line)) list.dataset.etat = 'connecte'; // salon rejoint
+      const m = /^(@\S+) :(\w+)!\S+ PRIVMSG #\w+ :(.*)$/.exec(line);
+      if (m) {
+        const t = tags(m[1]);
+        let text = m[3];
+        if (text.startsWith('\u0001ACTION ')) text = text.slice(8, -1); // /me
+        return add(t['display-name'] || m[2], t.color, text, t.id, m[2]);
+      }
+      // Messages supprimés par la modération : retirés de l'écran aussi.
+      const del = /^(@\S+) :tmi\.twitch\.tv CLEARMSG/.exec(line);
+      if (del) return list.querySelector(`li[data-id="${CSS.escape(tags(del[1])['target-msg-id'] || '')}"]`)?.remove();
+      const clr = /^@\S+ :tmi\.twitch\.tv CLEARCHAT #\w+(?: :(\w+))?$/.exec(line);
+      if (clr) for (const li of [...list.children]) if (!clr[1] || li.dataset.user === clr[1]) li.remove();
+    }
+    function connect() {
+      const me = login;
+      ws = new WebSocket(window.BOT_SIGNAL.chat);
+      ws.onopen = () => {
+        delay = 2000;
+        ws.send('CAP REQ :twitch.tv/tags twitch.tv/commands');
+        ws.send(`NICK justinfan${Math.floor(10000 + Math.random() * 80000)}`); // connexion anonyme : lecture seule
+        ws.send(`JOIN #${me}`);
+      };
+      ws.onmessage = (ev) => String(ev.data).split('\r\n').filter(Boolean).forEach(onLine);
+      ws.onclose = () => {
+        if (login !== me) return;
+        setTimeout(() => { if (login === me) connect(); }, delay);
+        delay = Math.min(delay * 2, 30000);
+      };
+    }
+    return {
+      start(name) {
+        const l = String(name).toLowerCase();
+        if (l === login || !/^\w{2,25}$/.test(l)) return;
+        login = l;
+        ws?.close();
+        connect();
+      },
+      add,
+      onLine,
+    };
+  })();
 
   function showError(text) {
     const e = $('error');
@@ -309,6 +441,11 @@
     };
     next();
     if (!SCENES[fixed]) setInterval(next, 7000);
+    const fake = [['Biskar', '#ff6b6b', 'bon retour de pause 👋'], ['Zeph', '#4dabf7', 'GG pour la dernière partie'], ['Master67', '#ffd43b', '!event'],
+      ['Lucie_', '#b197fc', 'on attend le prochain signal 👀'], ['Nox', '#69db7c', 'la fréquence 101.1 est trop forte'], ['Kaori', '#f783ac', 'pause pipi validée']];
+    // Aperçu avec le vrai chat d'une chaîne : #demo&scene=pause&chaine=nomdelachaine
+    if (params.get('chaine')) chat.start(params.get('chaine'));
+    else fake.forEach(([n, c, t], i) => setTimeout(() => chat.add(n, c, t), 300 + i * 900));
     return;
   }
 
