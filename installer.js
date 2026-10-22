@@ -92,9 +92,10 @@
         options: { coin: $('coin').value, theme: $('theme').value, son: $('son').checked },
       }, log);
       if (done.collection) {
-        status(`C'est prêt ✓ OBS a ouvert la collection « ${done.collection} » : les 4 scènes de l'event et « Event · En live », `
-          + 'où l\'overlay est déjà placé. Ajoute dans « Event · En live » ta capture de jeu et ta webcam (sous l\'overlay). '
-          + 'Pour revenir à ta chaîne habituelle : menu Collection de scènes.', 'ok');
+        status(`C'est prêt ✓ OBS est passé sur le profil et la collection « ${done.collection} ». Il te reste :\n`
+          + '1. Paramètres → Stream → « Connecter le compte » (Twitch) : le nouveau profil n\'a pas ta clé de stream, c\'est voulu.\n'
+          + '2. Dans la scène « Event · En live » : ajoute ta capture de jeu, ta webcam et ton micro, sous l\'overlay.\n'
+          + '3. Pour revenir à ta chaîne : menu Profil ET menu Collection de scènes → ton ancien nom.', 'ok');
         return;
       }
       const parts = [];

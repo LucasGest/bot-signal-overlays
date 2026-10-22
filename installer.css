@@ -35,3 +35,4 @@ button:disabled { opacity: .55; cursor: wait; }
 .check.option { padding: 12px 14px; border: 1px solid var(--border); border-radius: 12px; background: rgba(0, 0, 0, .2); }
 .check.option:has(input:checked) { border-color: var(--accent); background: rgba(155, 140, 255, .10); }
 .check.option .muted { display: inline-block; margin-top: 4px; }
+.status { white-space: pre-line; }

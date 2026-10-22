@@ -6,6 +6,7 @@
 (function (root) {
   /** Noms dans OBS. Relancer l'installation met à jour ces sources au lieu d'en créer d'autres. */
   const NAMES = {
+    profile: '📡 Community Event',    // profil OBS à part (réglages techniques)
     collection: '📡 Community Event', // collection de scènes à part : la chaîne du streamer n'est jamais touchée
     live: '📡 Event · En live',       // scène de stream de l'event (overlay déjà dedans, le streamer ajoute jeu et webcam)
     overlay: '📡 Overlay Event',
@@ -16,6 +17,19 @@
       fin: ['📡 Event · Fin du stream', '📡 Overlay Event · Fin du stream'],
     },
   };
+
+  /**
+   * Réglages techniques recopiés dans le nouveau profil (mode de sortie simple et avancé, audio).
+   * Jamais la clé de stream ni le compte connecté.
+   */
+  const PROFILE_PARAMS = [
+    ['Output', 'Mode'],
+    ['SimpleOutput', 'VBitrate'], ['SimpleOutput', 'ABitrate'], ['SimpleOutput', 'StreamEncoder'],
+    ['SimpleOutput', 'Preset'], ['SimpleOutput', 'NVENCPreset2'], ['SimpleOutput', 'RecQuality'], ['SimpleOutput', 'RecFormat2'], ['SimpleOutput', 'FilePath'],
+    ['AdvOut', 'Encoder'], ['AdvOut', 'RecEncoder'], ['AdvOut', 'TrackIndex'], ['AdvOut', 'RecFilePath'], ['AdvOut', 'RecFormat2'],
+    ['Audio', 'SampleRate'], ['Audio', 'ChannelSetup'],
+    ['Video', 'ScaleType'], ['Video', 'ColorFormat'], ['Video', 'ColorSpace'], ['Video', 'ColorRange'],
+  ];
 
   class InstallError extends Error {
     constructor(code, detail = '') {
@@ -115,7 +129,34 @@
    */
   async function install(obs, { siteUrl, key, addTo = [], scenes = true, separate = false, options = {} }, log = () => {}) {
     let newCollection = false;
+    let newProfile = false;
     if (separate) {
+      // 1) Profil à part, avec une copie des réglages techniques du profil actuel.
+      //    La clé de stream n'est jamais lue ni copiée : le streamer reconnecte son compte Twitch lui-même.
+      const video = await obs.request('GetVideoSettings');
+      const params = [];
+      for (const [parameterCategory, parameterName] of PROFILE_PARAMS) {
+        try {
+          const r = await obs.request('GetProfileParameter', { parameterCategory, parameterName });
+          if (r.parameterValue != null && r.parameterValue !== '') params.push({ parameterCategory, parameterName, parameterValue: String(r.parameterValue) });
+        } catch { /* réglage absent : ignoré */ }
+      }
+      try {
+        await obs.request('CreateProfile', { profileName: NAMES.profile });
+        newProfile = true;
+      } catch (err) {
+        if (err.obsCode !== 601) throw err;
+        await obs.request('SetCurrentProfile', { profileName: NAMES.profile });
+      }
+      if (newProfile) {
+        const { baseWidth, baseHeight, outputWidth, outputHeight, fpsNumerator, fpsDenominator } = video;
+        await obs.request('SetVideoSettings', { baseWidth, baseHeight, outputWidth, outputHeight, fpsNumerator, fpsDenominator }).catch(() => {});
+        for (const p of params) await obs.request('SetProfileParameter', p).catch(() => {});
+        const fps = fpsNumerator && fpsDenominator ? `, ${Math.round(fpsNumerator / fpsDenominator)} i/s` : '';
+        log(`✓ Profil « ${NAMES.profile} » créé, avec tes réglages : ${baseWidth}×${baseHeight}${fps}, débit et encodeur`);
+      } else log(`✓ Profil « ${NAMES.profile} » ouvert`);
+
+      // 2) Collection de scènes à part.
       // OBS bascule sur la collection (et attend qu'elle soit chargée) avant de répondre.
       try {
         await obs.request('CreateSceneCollection', { sceneCollectionName: NAMES.collection });
@@ -218,6 +259,8 @@
       }
       await obs.request('SetCurrentProgramScene', { sceneName: NAMES.live }).catch(() => {});
       done.collection = NAMES.collection;
+      done.profile = NAMES.profile;
+      done.newProfile = newProfile;
     }
     return done;
   }
