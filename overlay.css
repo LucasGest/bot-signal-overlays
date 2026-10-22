@@ -184,7 +184,7 @@ body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: anti
 /* ── Logos : image (logo-event.png, logo-bot.png) si présente, sinon logo texte animé (logos.js, GSAP) ── */
 .ev-logo img.logo, .bot-logo img.logo { display: none; }
 .has-img > img.logo { display: block; }
-.has-img > .logo-txt { display: none; }
+.ev-logo.has-img > .logo-txt, .bot-logo.has-img > .logo-txt { display: none; } /* plus précis que .ev-logo .logo-txt (plus bas) */
 .ev-logo img.logo { height: 92px; width: auto; }
 .bot-logo img.logo { height: 34px; width: auto; }
 .ev-logo .logo-txt { position: relative; display: inline-grid; grid-template-columns: auto auto; align-items: end; column-gap: 12px; padding: 12px 20px 12px 18px; border-radius: 18px; overflow: hidden;
