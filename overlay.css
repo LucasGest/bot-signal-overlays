@@ -246,7 +246,7 @@ body[data-coin="hg"] .ticker, body[data-coin="hd"] .ticker { left: 40px; }
 .scene.with-chat .scene-main, .scene.with-cam .scene-main { margin-right: 530px; max-width: 1250px; }
 .scene.with-chat .scene-bar, .scene.with-cam .scene-bar { left: 60px; transform: none; width: 1270px; }
 .scene.with-chat .scene-waves, .scene.with-cam .scene-waves { left: 36%; }
-/* Pause : webcam en haut à droite (posée AU-DESSUS de la page par l'installateur, 8 px à l'intérieur du cadre), chat en dessous. */
+/* Pause : cadre en haut à droite (source à part, au-dessus de la webcam : coins arrondis gardés), chat en dessous. */
 body.pause-cam .cam { top: 130px; right: 60px; left: auto; width: 470px; height: 264px; }
 body.pause-cam .cam-tag { bottom: -58px; }
 .scene.with-cam .chat { top: 466px; }

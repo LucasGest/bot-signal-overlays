@@ -10,6 +10,7 @@
     collection: '📡 Community Event', // collection de scènes à part : la chaîne du streamer n'est jamais touchée
     live: '📡 Event · En live',       // scène de stream de l'event (overlay déjà dedans, le streamer ajoute jeu et webcam)
     overlay: '📡 Overlay Event',
+    camFrame: '📡 Cadre webcam · Pause', // au-dessus de la webcam dans la scène Pause
     scenes: {
       debut: ['📡 Event · Commence bientôt', '📡 Overlay Event · Commence bientôt'],
       pause: ['📡 Event · Pause', '📡 Overlay Event · Pause'],
@@ -115,6 +116,7 @@
     if ((!scene || scene === 'pause') && options.cam === false) p.push('cam=0');
     if (!scene && options.bandeau === false) p.push('bandeau=0');
     if (scene === 'pause' && options.chat === false) p.push('chat=0');
+    if (options.cadre) p.push(`cadre=${options.cadre}`);
     return `${siteUrl}/#${p.join('&')}`;
   }
 
@@ -129,8 +131,9 @@
   }
 
   /** Cadre de la webcam de la scène Pause (470×264 en haut à droite, voir body.pause-cam dans overlay.css).
-   *  La page Pause est opaque : la webcam y passe au-dessus, 8 px à l'intérieur pour laisser la bordure visible. */
-  const PAUSE_CAM = { x: 1398, y: 138, w: 454, h: 248 };
+   *  La page Pause est opaque : la webcam passe au-dessus, et le cadre (source à part) au-dessus d'elle,
+   *  pour garder les coins arrondis. Comme en live, la webcam se cale 5 px à l'intérieur, sous la bordure. */
+  const PAUSE_CAM = { x: 1395, y: 135, w: 460, h: 254 };
 
   /**
    * Installe (ou met à jour) les overlays.
@@ -265,6 +268,12 @@
         log(`✓ Scène « ${sceneName.replace('📡 ', '')} » : source ${what}`);
         done.scenes.push(sceneName);
       }
+      if (options.cam !== false) {
+        const what = await upsert(NAMES.scenes.pause[0], NAMES.camFrame, sourceUrl(siteUrl, key, null, { theme: options.theme, cadre: 'pause' }));
+        log(`✓ Cadre webcam de la Pause : source ${what}`);
+      } else {
+        await obs.request('RemoveInput', { inputName: NAMES.camFrame }).catch(() => {}); // cadre décoché : source retirée
+      }
     }
 
     if (separate && !sceneNames.has(NAMES.live)) {
@@ -319,6 +328,10 @@
           log(`✓ Webcam « ${sourceName} » ${found ? 'calée' : 'ajoutée'} dans la scène Pause`);
           done.pauseCam.push(sourceName);
         }
+        // Le cadre repasse au-dessus de la webcam.
+        const { sceneItems: last } = await obs.request('GetSceneItemList', { sceneName: pauseScene });
+        const frame = last.find((i) => i.sourceName === NAMES.camFrame);
+        if (frame) await obs.request('SetSceneItemIndex', { sceneName: pauseScene, sceneItemId: frame.sceneItemId, sceneItemIndex: last.length - 1 });
       }
     }
 

@@ -11,7 +11,8 @@
 //   bandeau=0           sans le bandeau défilant (overlay principal)
 //   chat=0              sans le chat Twitch (scène pause)
 //   demo                aperçu sans clé : fait défiler tous les écrans (pour placer l'overlay dans OBS)
-//   chaine=nom          avec demo et scene=pause : affiche le vrai chat de cette chaîne
+//   cadre=pause         source à part : cadre de la webcam de la scène Pause (posé au-dessus de la webcam)
+//   chaine=nom         avec demo et scene=pause : affiche le vrai chat de cette chaîne
 'use strict';
 
 (() => {
@@ -26,6 +27,7 @@
     bandeau: params.get('bandeau') !== '0',
     chat: params.get('chat') !== '0',
     demo: params.has('demo'),
+    cadre: params.get('cadre') === 'pause',
   };
   // La clé reste dans l'adresse : le bouton « Actualiser » d'OBS recharge l'adresse courante
   // (elle n'apparaît jamais à l'écran dans OBS).
@@ -303,7 +305,9 @@
     el.classList.toggle('with-cam', withCam);
     document.body.classList.toggle('pause-cam', withCam);
     $('chat').hidden = !withChat;
-    $('cam').hidden = !withCam;
+    // Dans OBS, le cadre est une source à part posée au-dessus de la webcam (#cadre=pause) : la page
+    // garde juste la place. En aperçu (#demo), on le dessine ici.
+    $('cam').hidden = !(withCam && opt.demo);
     if (withCam) {
       $('cam').classList.toggle('hot', Boolean(s.alerte?.concerne));
       setHtml($('cam-tag'), camTag(s));
@@ -312,9 +316,20 @@
     stack.classList.add('over-scene');
   }
 
+  /** Source « cadre webcam » de la scène Pause : seulement le cadre et le nom, fond transparent, sans son. */
+  function renderCadre(s) {
+    document.body.classList.add('pause-cam');
+    stack.hidden = true;
+    const cam = $('cam');
+    cam.hidden = false;
+    cam.classList.toggle('hot', Boolean(s.alerte?.concerne));
+    setHtml($('cam-tag'), camTag(s));
+  }
+
   function render() {
     const s = snap;
     if (!s) return;
+    if (opt.cadre) return renderCadre(s);
     if (opt.scene) renderScene(s);
     else renderLive(s);
     if (s.alerte?.concerne) intro(s.alerte);
