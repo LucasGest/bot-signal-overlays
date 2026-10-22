@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<!-- Sécurité : scripts de ce site seulement ; connexion uniquement à OBS sur ce PC. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src ws://localhost:* ws://127.0.0.1:*; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>Installer dans OBS · Bot Signal</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&family=Space+Grotesk:wght@700&display=swap">
+<link rel="stylesheet" href="installer.css">
+</head>
+<body>
+<main>
+  <div class="kicker">📡 La Community Event · Overlays OBS</div>
+  <h1>Installer dans OBS en 1 clic</h1>
+
+  <div id="no-key" class="card warn" hidden>
+    Ce lien est incomplet. Demande le tien sur Discord avec <code>/overlay lien</code> et ouvre le lien « Installer dans OBS ».
+  </div>
+
+  <section id="step-connect" class="card">
+    <h2><span class="num">1</span> Dans OBS (une seule fois)</h2>
+    <ol>
+      <li>Menu <b>Outils</b> → <b>Paramètres du serveur WebSocket</b></li>
+      <li>Coche <b>Activer le serveur WebSocket</b>, puis clique <b>Appliquer</b></li>
+      <li>Clique <b>Afficher les informations de connexion</b> et copie le <b>mot de passe</b></li>
+    </ol>
+    <p class="muted">OBS 28 ou plus récent. Le mot de passe reste entre ce navigateur et OBS, sur ton PC : il n'est envoyé nulle part.</p>
+
+    <h2><span class="num">2</span> Connexion</h2>
+    <div class="row">
+      <label>Mot de passe OBS<input id="password" type="password" autocomplete="off" spellcheck="false"></label>
+      <label class="small">Port<input id="port" type="number" value="4455" min="1" max="65535"></label>
+    </div>
+    <button id="connect">Se connecter à OBS</button>
+  </section>
+
+  <section id="step-install" class="card" hidden>
+    <h2><span class="num">3</span> Ce qu'on installe</h2>
+    <label class="check"><input id="scenes" type="checkbox" checked> Les 4 scènes plein écran : Commence bientôt, Pause, En veille, Fin du stream</label>
+    <p class="label">Ajouter l'overlay (fréquence, jauge, alertes) <b>en haut</b> de ces scènes :</p>
+    <div id="scene-list" class="scene-list"></div>
+    <div class="row">
+      <label>Coin du widget
+        <select id="coin">
+          <option value="bg">En bas à gauche</option><option value="bd">En bas à droite</option>
+          <option value="hg">En haut à gauche</option><option value="hd">En haut à droite</option>
+        </select>
+      </label>
+      <label>Style
+        <select id="theme"><option value="sombre">Sombre</option><option value="clair">Clair</option></select>
+      </label>
+    </div>
+    <label class="check"><input id="son" type="checkbox" checked> Son quand une alerte tombe</label>
+    <button id="install">Installer dans OBS</button>
+  </section>
+
+  <div id="status" class="status" hidden></div>
+  <ul id="log" class="log"></ul>
+</main>
+<script src="obs-installer.js"></script>
+<script src="installer.js"></script>
+</body>
+</html>

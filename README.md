@@ -9,6 +9,12 @@ Site statique : aucun serveur, aucune donnée. Les infos en direct (alerte, jaug
 | `overlay.css` | Le style : cartes « verre dépoli », thème sombre ou clair |
 | `overlay.js` | Connexion au bot, comptes à rebours, animation et son des alertes, aperçu `#demo` |
 | `config.js` | Adresse du bot (`wss://bot-signal-tqps.onrender.com/overlay/ws`) |
+| `installer.html`, `installer.js`, `installer.css` | Page « Installer dans OBS en 1 clic » |
+| `obs-installer.js` | Connexion au serveur WebSocket d'OBS (v5) et création des scènes / sources |
+
+## Installer dans OBS en 1 clic
+
+`/overlay lien` donne un lien `https://<site>/installer.html#cle=…`. Le streamer active le serveur WebSocket d'OBS (Outils → Paramètres du serveur WebSocket), colle le mot de passe, coche sa scène de jeu : la page crée les 4 scènes plein écran (📡 Event · …) et met l'overlay en haut des scènes cochées, à la taille de son écran OBS. Relancer l'installation met les adresses à jour (après `/overlay regenerer`) sans rien dupliquer. Le mot de passe OBS ne quitte pas le PC (connexion à `ws://127.0.0.1`).
 
 ## Adresse d'un streamer
 
