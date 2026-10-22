@@ -6,6 +6,8 @@
 (function (root) {
   /** Noms dans OBS. Relancer l'installation met à jour ces sources au lieu d'en créer d'autres. */
   const NAMES = {
+    collection: '📡 Community Event', // collection de scènes à part : la chaîne du streamer n'est jamais touchée
+    live: '📡 Event · En live',       // scène de stream de l'event (overlay déjà dedans, le streamer ajoute jeu et webcam)
     overlay: '📡 Overlay Event',
     scenes: {
       debut: ['📡 Event · Commence bientôt', '📡 Overlay Event · Commence bientôt'],
@@ -107,10 +109,27 @@
    * @param {string} o.key       clé de l'overlay du streamer
    * @param {string[]} o.addTo   scènes existantes où ajouter l'overlay principal (en haut)
    * @param {boolean} o.scenes   créer les 4 scènes plein écran
+   * @param {boolean} [o.separate] tout mettre dans une collection de scènes à part (recommandé)
    * @param {object} [o.options] { coin, theme, son }
    * @param {(line: string) => void} [log]
    */
-  async function install(obs, { siteUrl, key, addTo = [], scenes = true, options = {} }, log = () => {}) {
+  async function install(obs, { siteUrl, key, addTo = [], scenes = true, separate = false, options = {} }, log = () => {}) {
+    let newCollection = false;
+    if (separate) {
+      // OBS bascule sur la collection (et attend qu'elle soit chargée) avant de répondre.
+      try {
+        await obs.request('CreateSceneCollection', { sceneCollectionName: NAMES.collection });
+        newCollection = true;
+        log(`✓ Collection de scènes « ${NAMES.collection} » créée (ta collection habituelle n'est pas touchée)`);
+      } catch (err) {
+        if (err.obsCode !== 601) throw err;
+        await obs.request('SetCurrentSceneCollection', { sceneCollectionName: NAMES.collection });
+        log(`✓ Collection de scènes « ${NAMES.collection} » ouverte`);
+      }
+      scenes = true;
+      addTo = [NAMES.live];
+    }
+
     const video = await obs.request('GetVideoSettings');
     const W = video.baseWidth;
     const H = video.baseHeight;
@@ -168,6 +187,11 @@
       }
     }
 
+    if (separate && !sceneNames.has(NAMES.live)) {
+      await obs.request('CreateScene', { sceneName: NAMES.live });
+      sceneNames.add(NAMES.live);
+    }
+
     const targets = addTo.filter((n) => sceneNames.has(n));
     for (const [i, sceneName] of targets.entries()) {
       const what = i === 0 ? await upsert(sceneName, NAMES.overlay, sourceUrl(siteUrl, key, null, options)) : await ensureInScene(sceneName, NAMES.overlay);
@@ -180,6 +204,20 @@
         await obs.request('SetInputSettings', { inputName: NAMES.overlay, inputSettings: settings(sourceUrl(siteUrl, key, null, options)) });
         log('✓ Overlay principal existant : adresse mise à jour');
       } catch { /* pas encore créé : rien à faire */ }
+    }
+
+    if (separate) {
+      // Nouvelle collection : OBS y met une scène vide par défaut (« Scène »), inutile ici.
+      if (newCollection) {
+        const ours = new Set([NAMES.live, ...Object.values(NAMES.scenes).map(([s]) => s)]);
+        for (const { sceneName } of (await obs.request('GetSceneList')).scenes) {
+          if (ours.has(sceneName)) continue;
+          const { sceneItems } = await obs.request('GetSceneItemList', { sceneName });
+          if (!sceneItems.length) await obs.request('RemoveScene', { sceneName }).catch(() => {});
+        }
+      }
+      await obs.request('SetCurrentProgramScene', { sceneName: NAMES.live }).catch(() => {});
+      done.collection = NAMES.collection;
     }
     return done;
   }

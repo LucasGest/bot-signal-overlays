@@ -37,6 +37,10 @@
   }
 
   let obs = null;
+  const separate = () => document.querySelector('input[name="mode"]:checked').value === 'separe';
+  for (const radio of document.querySelectorAll('input[name="mode"]')) {
+    radio.addEventListener('change', () => { $('current-options').hidden = separate(); });
+  }
 
   $('connect').addEventListener('click', async () => {
     const btn = $('connect');
@@ -63,7 +67,7 @@
       }));
       if (!list.length) box.textContent = 'Aucune scène pour l\'instant : seules les 4 scènes plein écran seront créées.';
       $('step-install').hidden = false;
-      status(`Connecté à OBS ✓ — coche ta scène de jeu (et les autres où tu veux l'overlay).`, 'ok');
+      status('Connecté à OBS ✓ — choisis où installer, puis clique « Installer dans OBS ».', 'ok');
       $('step-install').scrollIntoView({ behavior: 'smooth' });
     } catch (err) {
       status(ERRORS[err.code] ?? `Erreur : ${err.message}`, 'err');
@@ -84,8 +88,15 @@
         key,
         addTo,
         scenes: $('scenes').checked,
+        separate: separate(),
         options: { coin: $('coin').value, theme: $('theme').value, son: $('son').checked },
       }, log);
+      if (done.collection) {
+        status(`C'est prêt ✓ OBS a ouvert la collection « ${done.collection} » : les 4 scènes de l'event et « Event · En live », `
+          + 'où l\'overlay est déjà placé. Ajoute dans « Event · En live » ta capture de jeu et ta webcam (sous l\'overlay). '
+          + 'Pour revenir à ta chaîne habituelle : menu Collection de scènes.', 'ok');
+        return;
+      }
       const parts = [];
       if (done.scenes.length) parts.push(`${done.scenes.length} scènes plein écran`);
       if (done.overlay.length) parts.push(`l'overlay dans ${done.overlay.length} scène${done.overlay.length > 1 ? 's' : ''}`);

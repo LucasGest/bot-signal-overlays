@@ -39,9 +39,16 @@
 
   <section id="step-install" class="card" hidden>
     <h2><span class="num">3</span> Ce qu'on installe</h2>
-    <label class="check"><input id="scenes" type="checkbox" checked> Les 4 scènes plein écran : Commence bientôt, Pause, En veille, Fin du stream</label>
-    <p class="label">Ajouter l'overlay (fréquence, jauge, alertes) <b>en haut</b> de ces scènes :</p>
-    <div id="scene-list" class="scene-list"></div>
+    <label class="check option"><input type="radio" name="mode" value="separe" checked>
+      <span><b>Une collection de scènes à part « 📡 Community Event »</b> (recommandé)<br>
+      <span class="muted">Ta chaîne habituelle reste intacte. Tu y trouveras les 4 scènes de l'event et une scène « Event · En live » avec l'overlay : ajoute-y ta capture de jeu et ta webcam. Pour revenir à ta chaîne : menu Collection de scènes.</span></span></label>
+    <label class="check option"><input type="radio" name="mode" value="actuelle">
+      <span><b>Dans ma collection actuelle</b><br><span class="muted">Tu choisis les scènes où ajouter l'overlay.</span></span></label>
+    <div id="current-options" hidden>
+      <label class="check"><input id="scenes" type="checkbox" checked> Ajouter les 4 scènes plein écran : Commence bientôt, Pause, En veille, Fin du stream</label>
+      <p class="label">Ajouter l'overlay (fréquence, jauge, alertes) <b>en haut</b> de ces scènes :</p>
+      <div id="scene-list" class="scene-list"></div>
+    </div>
     <div class="row">
       <label>Coin du widget
         <select id="coin">

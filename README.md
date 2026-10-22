@@ -14,7 +14,7 @@ Site statique : aucun serveur, aucune donnée. Les infos en direct (alerte, jaug
 
 ## Installer dans OBS en 1 clic
 
-`/overlay lien` donne un lien `https://<site>/installer.html#cle=…`. Le streamer active le serveur WebSocket d'OBS (Outils → Paramètres du serveur WebSocket), colle le mot de passe, coche sa scène de jeu : la page crée les 4 scènes plein écran (📡 Event · …) et met l'overlay en haut des scènes cochées, à la taille de son écran OBS. Relancer l'installation met les adresses à jour (après `/overlay regenerer`) sans rien dupliquer. Le mot de passe OBS ne quitte pas le PC (connexion à `ws://127.0.0.1`).
+`/overlay lien` donne un lien `https://<site>/installer.html#cle=…`. Le streamer active le serveur WebSocket d'OBS (Outils → Paramètres du serveur WebSocket) et colle le mot de passe. Par défaut, la page crée une **collection de scènes à part « 📡 Community Event »** (sa chaîne habituelle n'est jamais touchée) avec les 4 scènes plein écran et « 📡 Event · En live » où l'overlay est déjà placé. Autre choix : installer dans la collection actuelle, en cochant les scènes. Relancer l'installation met les adresses à jour (après `/overlay regenerer`) sans rien dupliquer. Le mot de passe OBS ne quitte pas le PC (connexion à `ws://127.0.0.1`).
 
 ## Adresse d'un streamer
 
