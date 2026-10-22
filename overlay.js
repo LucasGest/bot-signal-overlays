@@ -297,8 +297,17 @@
     setHtml($('scene-extra'), sc.extra || '');
     setHtml($('scene-bar'), sceneBar(s));
     const withChat = opt.scene === 'pause' && opt.chat;
+    // Pause : cadre de la webcam en haut à droite, au-dessus du chat (l'installateur y pose la webcam).
+    const withCam = opt.scene === 'pause' && opt.cam;
     el.classList.toggle('with-chat', withChat);
+    el.classList.toggle('with-cam', withCam);
+    document.body.classList.toggle('pause-cam', withCam);
     $('chat').hidden = !withChat;
+    $('cam').hidden = !withCam;
+    if (withCam) {
+      $('cam').classList.toggle('hot', Boolean(s.alerte?.concerne));
+      setHtml($('cam-tag'), camTag(s));
+    }
     if (withChat && !opt.demo && s.streamer.chaine) chat.start(s.streamer.chaine);
     stack.classList.add('over-scene');
   }

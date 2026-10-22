@@ -98,7 +98,7 @@
         options: { coin: $('coin').value, theme: $('theme').value, son: $('son').checked, cam: $('cam').checked, bandeau: $('bandeau').checked, chat: $('chat').checked },
       }, log);
       const camHint = !$('cam').checked ? ''
-        : done.webcams.length ? `Webcam calée dans le cadre ✓ (${done.webcams.join(', ')}).\n`
+        : done.webcams.length ? `Webcam calée dans le cadre ✓ (${done.webcams.join(', ')})${done.pauseCam.length ? ', aussi dans la scène Pause' : ''}.\n`
           : 'Webcam : ajoute-la dans « Event · En live » (sous l\'overlay), puis relance l\'installation : elle sera calée dans le cadre toute seule.\n';
       if (done.collection) {
         status(`C'est prêt ✓ OBS est passé sur le profil et la collection « ${done.collection} ».\n${camHint}Il te reste :\n`

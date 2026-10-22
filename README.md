@@ -22,7 +22,7 @@ Chaque streamer reçoit **son** lien sur Discord avec `/overlay lien` (clé secr
 
 Scènes plein écran : `&scene=debut` (commence bientôt) · `&scene=pause` · `&scene=veille` (sommeil) · `&scene=fin` (fin du stream)
 Autres options · `&coin=bd` / `hg` / `hd` · `&theme=clair` · `&son=0`
-Overlay principal (scène « En live ») : cadre de la webcam en haut à droite (en haut à gauche si `coin=hd`) et bandeau défilant en bas · `&cam=0` · `&bandeau=0`. L'installateur cale toute source webcam de la scène dans le cadre (relancer l'installation après avoir ajouté la webcam).
+Overlay principal (scène « En live ») : cadre de la webcam en haut à droite (en haut à gauche si `coin=hd`) et bandeau défilant en bas · `&cam=0` · `&bandeau=0`. L'installateur cale toute source webcam de la scène dans le cadre (relancer l'installation après avoir ajouté la webcam). Scène Pause : même cadre en haut à droite, au-dessus du chat (`&cam=0` pour l'enlever) ; l'installateur y ajoute la même webcam, au-dessus de la page.
 Scène pause : chat Twitch de la chaîne en lecture seule (connexion anonyme, messages supprimés par la modération retirés aussi) · `&chat=0`. Aperçu : `#demo&scene=pause&chaine=nomdelachaine`.
 
 ## Logos

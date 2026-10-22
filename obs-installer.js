@@ -112,7 +112,7 @@
     if (options.coin && options.coin !== 'bg') p.push(`coin=${options.coin}`);
     if (options.theme === 'clair') p.push('theme=clair');
     if (options.son === false) p.push('son=0');
-    if (!scene && options.cam === false) p.push('cam=0');
+    if ((!scene || scene === 'pause') && options.cam === false) p.push('cam=0');
     if (!scene && options.bandeau === false) p.push('bandeau=0');
     if (scene === 'pause' && options.chat === false) p.push('chat=0');
     return `${siteUrl}/#${p.join('&')}`;
@@ -127,6 +127,10 @@
     const x = coin === 'hd' ? 40 : 1432;
     return { x: x + 5, y: 45, w: 438, h: 242 };
   }
+
+  /** Cadre de la webcam de la scène Pause (470×264 en haut à droite, voir body.pause-cam dans overlay.css).
+   *  La page Pause est opaque : la webcam y passe au-dessus, 8 px à l'intérieur pour laisser la bordure visible. */
+  const PAUSE_CAM = { x: 1398, y: 138, w: 454, h: 248 };
 
   /**
    * Installe (ou met à jour) les overlays.
@@ -284,19 +288,36 @@
 
     // Webcam déjà présente dans la scène de l'overlay : calée dans le cadre, sous l'overlay.
     done.webcams = [];
+    done.pauseCam = [];
     if (options.cam !== false && targets.length) {
-      const r = camRect(options.coin);
       const k = W / 1920;
+      const fit = (sceneName, sceneItemId, r) => obs.request('SetSceneItemTransform', {
+        sceneName, sceneItemId,
+        sceneItemTransform: { positionX: r.x * k, positionY: r.y * (H / 1080), alignment: 5, boundsType: 'OBS_BOUNDS_SCALE_OUTER', boundsAlignment: 0,
+          boundsWidth: r.w * k, boundsHeight: r.h * (H / 1080), cropToBounds: true, rotation: 0 },
+      });
+      const r = camRect(options.coin);
       for (const sceneName of targets) {
         const { sceneItems } = await obs.request('GetSceneItemList', { sceneName });
         for (const it of sceneItems.filter((i) => WEBCAM_KINDS.has(i.inputKind))) {
-          await obs.request('SetSceneItemTransform', {
-            sceneName, sceneItemId: it.sceneItemId,
-            sceneItemTransform: { positionX: r.x * k, positionY: r.y * (H / 1080), alignment: 5, boundsType: 'OBS_BOUNDS_SCALE_OUTER', boundsAlignment: 0,
-              boundsWidth: r.w * k, boundsHeight: r.h * (H / 1080), cropToBounds: true, rotation: 0 },
-          });
+          await fit(sceneName, it.sceneItemId, r);
           log(`✓ Webcam « ${it.sourceName} » calée dans le cadre (${sceneName.replace('📡 ', '')})`);
-          done.webcams.push(it.sourceName);
+          if (!done.webcams.includes(it.sourceName)) done.webcams.push(it.sourceName);
+        }
+      }
+      // Scène Pause : la même webcam (pas une copie), ajoutée si besoin, au-dessus de la page.
+      const [pauseScene] = NAMES.scenes.pause;
+      if (scenes && sceneNames.has(pauseScene)) {
+        const { sceneItems } = await obs.request('GetSceneItemList', { sceneName: pauseScene });
+        const wanted = done.webcams.length ? done.webcams : sceneItems.filter((i) => WEBCAM_KINDS.has(i.inputKind)).map((i) => i.sourceName);
+        for (const sourceName of wanted) {
+          const found = sceneItems.find((i) => i.sourceName === sourceName);
+          const id = found ? found.sceneItemId : (await obs.request('CreateSceneItem', { sceneName: pauseScene, sourceName, sceneItemEnabled: true })).sceneItemId;
+          await fit(pauseScene, id, PAUSE_CAM);
+          const { sceneItems: now } = await obs.request('GetSceneItemList', { sceneName: pauseScene });
+          await obs.request('SetSceneItemIndex', { sceneName: pauseScene, sceneItemId: id, sceneItemIndex: now.length - 1 });
+          log(`✓ Webcam « ${sourceName} » ${found ? 'calée' : 'ajoutée'} dans la scène Pause`);
+          done.pauseCam.push(sourceName);
         }
       }
     }
