@@ -215,7 +215,6 @@ body[data-coin="hd"] .cam { right: auto; left: 40px; }
 @keyframes camGlow { to { background-position: 300% 300%; } }
 .cam.hot { filter: drop-shadow(0 0 22px rgba(255, 122, 26, .6)); }
 .cam.hot .cam-frame { background-image: linear-gradient(135deg, #ff7a1a, #ffb36b 40%, #ff7a1a 70%, #ffb36b); animation-duration: 3s; }
-.cam-logo { position: absolute; top: -18px; left: -18px; transform: scale(.74); transform-origin: top left; }
 .cam-tag { position: absolute; left: 50%; bottom: -24px; transform: translateX(-50%); padding: 9px 20px; border-radius: 99px; white-space: nowrap; font-size: 19px; display: flex; align-items: center; gap: 10px; }
 .cam-tag b { font-family: var(--title); font-size: 21px; }
 .cam-tag .mono { color: var(--muted); font-size: 16px; }
