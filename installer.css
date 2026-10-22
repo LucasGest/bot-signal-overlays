@@ -44,3 +44,4 @@ button:disabled { opacity: .55; cursor: wait; }
 .copy-row button.done { background: var(--ok); color: #0b0a12; }
 .offscreen { position: fixed; top: -1000px; left: 0; opacity: 0; }
 a { color: var(--accent); }
+.brand { display: block; height: 72px; width: auto; margin: 0 0 18px -6px; }
