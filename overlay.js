@@ -27,8 +27,8 @@
     chat: params.get('chat') !== '0',
     demo: params.has('demo'),
   };
-  // La clé ne reste pas visible dans l'adresse (historique, captures).
-  if (opt.cle && history.replaceState) history.replaceState(null, '', location.pathname + '#' + [...params].filter(([k]) => k !== 'cle').map(([k, v]) => (v ? `${k}=${v}` : k)).join('&'));
+  // La clé reste dans l'adresse : le bouton « Actualiser » d'OBS recharge l'adresse courante
+  // (elle n'apparaît jamais à l'écran dans OBS).
 
   document.documentElement.dataset.theme = opt.theme;
   const $ = (id) => document.getElementById(id);
