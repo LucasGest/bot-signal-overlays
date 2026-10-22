@@ -150,11 +150,33 @@
       }
       if (newProfile) {
         const { baseWidth, baseHeight, outputWidth, outputHeight, fpsNumerator, fpsDenominator } = video;
-        await obs.request('SetVideoSettings', { baseWidth, baseHeight, outputWidth, outputHeight, fpsNumerator, fpsDenominator }).catch(() => {});
-        for (const p of params) await obs.request('SetProfileParameter', p).catch(() => {});
-        const fps = fpsNumerator && fpsDenominator ? `, ${Math.round(fpsNumerator / fpsDenominator)} i/s` : '';
-        log(`✓ Profil « ${NAMES.profile} » créé, avec tes réglages : ${baseWidth}×${baseHeight}${fps}, débit et encodeur`);
-      } else log(`✓ Profil « ${NAMES.profile} » ouvert`);
+        const wanted = { baseWidth, baseHeight, outputWidth, outputHeight, fpsNumerator, fpsDenominator };
+        const fps = fpsNumerator && fpsDenominator ? `${Math.round(fpsNumerator / fpsDenominator)} i/s` : '';
+        // OBS peut finir de basculer sur le nouveau profil après sa réponse : on relit, et on réessaie si besoin.
+        let videoOk = false;
+        let videoErr = '';
+        for (let attempt = 0; attempt < 3 && !videoOk; attempt++) {
+          if (attempt) await new Promise((r) => setTimeout(r, 1000));
+          try {
+            await obs.request('SetVideoSettings', wanted);
+            const now = await obs.request('GetVideoSettings');
+            videoOk = Object.keys(wanted).every((k) => wanted[k] == null || now[k] === wanted[k]);
+          } catch (err) { videoErr = err.detail || err.message; }
+        }
+        let paramsFailed = 0;
+        for (const p of params) {
+          try {
+            await obs.request('SetProfileParameter', p);
+            const r = await obs.request('GetProfileParameter', { parameterCategory: p.parameterCategory, parameterName: p.parameterName });
+            if (String(r.parameterValue) !== p.parameterValue) paramsFailed++;
+          } catch { paramsFailed++; }
+        }
+        log(`✓ Profil « ${NAMES.profile} » créé`);
+        log(videoOk ? `✓ Image recopiée : ${baseWidth}×${baseHeight}${fps ? `, ${fps}` : ''}`
+          : `⚠ Image non recopiée${videoErr ? ` (${videoErr})` : ''} : règle-la toi-même dans Paramètres → Vidéo (${baseWidth}×${baseHeight}${fps ? `, ${fps}` : ''})`);
+        log(paramsFailed ? `⚠ ${paramsFailed} réglage(s) de sortie non recopié(s) : vérifie ton débit et ton encodeur dans Paramètres → Sortie`
+          : '✓ Débit, encodeur et audio recopiés');
+      } else log(`✓ Profil « ${NAMES.profile} » ouvert (réglages existants gardés)`);
 
       // 2) Collection de scènes à part.
       // OBS bascule sur la collection (et attend qu'elle soit chargée) avant de répondre.
