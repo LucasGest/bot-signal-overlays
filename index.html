@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex">
+<meta name="referrer" content="no-referrer">
+<!-- Sécurité : scripts et styles de ce site seulement, polices Google, connexion au Bot Signal seulement. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src wss://bot-signal-tqps.onrender.com ws://localhost:3000 ws://127.0.0.1:3000; img-src 'self' data:; base-uri 'none'; form-action 'none'">
+<title>Overlay · Bot Signal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;700&family=Space+Grotesk:wght@500;700&display=swap">
+<link rel="stylesheet" href="overlay.css">
+</head>
+<body>
+  <!-- Animation plein écran au déclenchement d'une alerte (F-42) -->
+  <div id="intro" class="intro" hidden>
+    <div class="waves"><i></i><i></i><i></i><i></i></div>
+    <div class="intro-text">
+      <div class="intro-kicker" id="intro-kicker"></div>
+      <div class="intro-title">SIGNAL</div>
+      <div class="intro-sub" id="intro-sub"></div>
+    </div>
+  </div>
+
+  <!-- Scène « En veille » (pauses, sommeil) -->
+  <div id="veille" class="veille" hidden>
+    <div class="veille-card glass">
+      <div class="kicker">📡 La Community Event</div>
+      <div class="veille-title">En veille</div>
+      <div class="veille-who"><span id="veille-pseudo"></span> <span class="mono" id="veille-freq"></span></div>
+      <p class="veille-text">L'event continue sur les autres chaînes de l'escouade.<br>Le prochain Signal peut tomber à tout moment 👀</p>
+      <div id="veille-info" class="veille-info"></div>
+    </div>
+  </div>
+
+  <!-- Coin permanent (F-41) + panneaux d'alerte, de vote et de fin -->
+  <div id="stack" class="stack">
+    <div id="panel" class="panel glass" hidden></div>
+    <div id="widget" class="widget glass" hidden></div>
+  </div>
+
+  <div id="error" class="error glass" hidden></div>
+  <script src="config.js"></script>
+  <script src="overlay.js"></script>
+</body>
+</html>

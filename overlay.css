@@ -1,0 +1,124 @@
+/* Overlay OBS du Bot Signal — 1920×1080, fond transparent (F-40).
+   Style « verre dépoli » discret pour se fondre dans le pack de chaque streamer.
+   DA de l'event (F-45) : sombre, orange réservé aux alertes, Space Grotesk / JetBrains Mono / Inter. */
+
+:root {
+  --glass: rgba(14, 15, 19, 0.62);
+  --glass-border: rgba(255, 255, 255, 0.10);
+  --ink: #f2f2f7;
+  --muted: rgba(242, 242, 247, 0.62);
+  --track: rgba(255, 255, 255, 0.12);
+  --accent: #9b8cff;           /* jauge, hors alerte */
+  --alert: #ff7a1a;            /* orange : réservé aux alertes */
+  --alert-soft: rgba(255, 122, 26, 0.18);
+  --ok: #3ddc97;
+  --veille-bg: radial-gradient(circle at 30% 20%, #1d1b2e 0%, #0b0b10 70%);
+  --font: 'Inter', system-ui, sans-serif;
+  --title: 'Space Grotesk', 'Inter', sans-serif;
+  --mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+:root[data-theme="clair"] {
+  --glass: rgba(255, 255, 255, 0.72);
+  --glass-border: rgba(0, 0, 0, 0.08);
+  --ink: #15151c;
+  --muted: rgba(21, 21, 28, 0.58);
+  --track: rgba(0, 0, 0, 0.08);
+  --accent: #6c5ce7;
+  --veille-bg: radial-gradient(circle at 30% 20%, #ffffff 0%, #e9e7f2 75%);
+}
+
+* { box-sizing: border-box; }
+html, body { margin: 0; width: 1920px; height: 1080px; overflow: hidden; background: transparent; }
+body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: antialiased; }
+[hidden] { display: none !important; }
+.mono { font-family: var(--mono); }
+.kicker { font-family: var(--mono); font-size: 15px; letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+
+.glass {
+  background: var(--glass);
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  backdrop-filter: blur(18px) saturate(140%);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+}
+
+/* ── Pile en coin : panneau (alerte, vote, fin) au-dessus du widget permanent ── */
+.stack { position: absolute; display: flex; flex-direction: column; gap: 14px; width: 440px; }
+.stack[data-coin="bg"] { left: 40px; bottom: 40px; }
+.stack[data-coin="bd"] { right: 40px; bottom: 40px; align-items: flex-end; }
+.stack[data-coin="hg"] { left: 40px; top: 40px; flex-direction: column-reverse; }
+.stack[data-coin="hd"] { right: 40px; top: 40px; flex-direction: column-reverse; align-items: flex-end; }
+.stack > * { width: 100%; animation: pop .45s cubic-bezier(.2, .9, .3, 1.2); }
+@keyframes pop { from { opacity: 0; transform: translateY(14px) scale(.97); } to { opacity: 1; transform: none; } }
+
+/* ── Widget permanent (F-41) ── */
+.widget { padding: 18px 22px; }
+.w-top { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.w-freq { font-family: var(--mono); font-size: 34px; font-weight: 700; letter-spacing: .02em; }
+.w-freq small { font-size: 15px; color: var(--muted); font-weight: 500; margin-left: 6px; }
+.w-signals { text-align: right; }
+.w-signals b { display: block; font-family: var(--title); font-size: 26px; }
+.w-row { display: flex; justify-content: space-between; margin-top: 12px; font-size: 15px; color: var(--muted); }
+.w-row b { color: var(--ink); font-family: var(--mono); font-weight: 500; }
+.bar { height: 10px; margin-top: 7px; border-radius: 99px; background: var(--track); overflow: hidden; }
+.bar > i { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--accent), #c8bfff); transition: width .8s cubic-bezier(.2, .8, .2, 1); }
+.bar.full > i { background: linear-gradient(90deg, var(--alert), #ffb36b); }
+.w-note { margin-top: 10px; font-size: 14px; color: var(--muted); }
+
+/* « Bientôt » avant le lancement (F-46) */
+.soon-title { font-family: var(--title); font-size: 34px; font-weight: 700; letter-spacing: .04em; }
+.soon-count { font-family: var(--mono); font-size: 40px; font-weight: 700; margin-top: 6px; }
+.soon-count small { font-size: 16px; color: var(--muted); font-weight: 500; }
+
+/* ── Panneau d'alerte (F-42), de vote (F-43) et de fin ── */
+.panel { padding: 20px 24px; }
+.panel.alert { border-color: rgba(255, 122, 26, .55); box-shadow: 0 0 0 1px rgba(255, 122, 26, .25), 0 12px 50px rgba(255, 122, 26, .22); }
+.p-kicker { font-family: var(--mono); font-size: 14px; letter-spacing: .14em; text-transform: uppercase; color: var(--alert); display: flex; align-items: center; gap: 8px; }
+.p-kicker::before { content: ''; width: 9px; height: 9px; border-radius: 50%; background: var(--alert); animation: blink 1.2s infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+.p-game { font-family: var(--title); font-size: 32px; font-weight: 700; margin: 8px 0 2px; line-height: 1.1; }
+.p-label { font-size: 15px; color: var(--muted); }
+.p-timer { font-family: var(--mono); font-size: 56px; font-weight: 700; line-height: 1; margin: 12px 0 4px; }
+.p-timer.urgent { color: var(--alert); animation: blink 1s infinite; }
+.p-players { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+.chip { font-size: 14px; font-weight: 600; padding: 6px 11px; border-radius: 99px; background: var(--track); color: var(--muted); }
+.chip.on { background: rgba(61, 220, 151, .18); color: var(--ok); }
+.chip.late { background: var(--alert-soft); color: var(--alert); }
+.chip.gone { opacity: .45; text-decoration: line-through; }
+.chip.me { outline: 1.5px solid currentColor; }
+
+.vote-opt { margin-top: 12px; }
+.vote-opt .w-row { margin-top: 0; color: var(--ink); font-size: 17px; }
+.vote-opt .w-row span:first-child b { font-family: var(--mono); color: var(--alert); margin-right: 8px; }
+.vote-opt .bar > i { background: linear-gradient(90deg, var(--alert), #ffb36b); }
+.vote-opt.win .w-row { font-weight: 700; }
+
+.banner { padding: 12px 18px; font-size: 15px; display: flex; gap: 10px; align-items: center; }
+.banner b { font-family: var(--title); }
+
+/* ── Animation plein écran (F-42) ── */
+.intro { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle, rgba(255, 122, 26, .28) 0%, rgba(10, 6, 2, .82) 70%); animation: introFade 5.2s ease forwards; }
+@keyframes introFade { 0% { opacity: 0; } 8% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
+.waves { position: absolute; width: 10px; height: 10px; }
+.waves i { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px; border: 4px solid var(--alert); border-radius: 50%; opacity: 0; animation: wave 2.4s cubic-bezier(.1, .6, .3, 1) infinite; }
+.waves i:nth-child(2) { animation-delay: .6s; }
+.waves i:nth-child(3) { animation-delay: 1.2s; }
+.waves i:nth-child(4) { animation-delay: 1.8s; }
+@keyframes wave { 0% { transform: scale(.4); opacity: .9; } 100% { transform: scale(9); opacity: 0; } }
+.intro-text { position: relative; text-align: center; color: #fff; animation: zoom 5.2s cubic-bezier(.2, .9, .3, 1) forwards; }
+@keyframes zoom { 0% { transform: scale(.6); opacity: 0; } 10% { transform: scale(1.06); opacity: 1; } 16% { transform: scale(1); } 100% { transform: scale(1.04); } }
+.intro-kicker { font-family: var(--mono); font-size: 30px; letter-spacing: .3em; color: var(--alert); text-transform: uppercase; }
+.intro-title { font-family: var(--title); font-size: 230px; font-weight: 700; line-height: .9; letter-spacing: .04em; text-shadow: 0 0 60px rgba(255, 122, 26, .7); }
+.intro-sub { font-size: 40px; font-weight: 600; margin-top: 10px; }
+
+/* ── Scène « En veille » ── */
+.veille { position: absolute; inset: 0; display: grid; place-items: center; background: var(--veille-bg); }
+.veille-card { width: 860px; padding: 56px 64px; text-align: center; }
+.veille-title { font-family: var(--title); font-size: 110px; font-weight: 700; line-height: 1; margin: 14px 0; animation: breathe 4s ease-in-out infinite; }
+@keyframes breathe { 50% { opacity: .55; } }
+.veille-who { font-size: 30px; font-weight: 600; }
+.veille-who .mono { color: var(--muted); margin-left: 10px; }
+.veille-text { font-size: 22px; color: var(--muted); line-height: 1.5; }
+.veille-info { margin-top: 26px; font-size: 20px; }
+
+.error { position: absolute; left: 40px; bottom: 40px; padding: 14px 20px; font-size: 16px; color: var(--alert); }
