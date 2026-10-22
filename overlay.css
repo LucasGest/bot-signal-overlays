@@ -97,7 +97,7 @@ body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: anti
 .banner b { font-family: var(--title); }
 
 /* ── Animation plein écran (F-42) ── */
-.intro { position: absolute; inset: 0; display: grid; place-items: center; background: radial-gradient(circle, rgba(255, 122, 26, .28) 0%, rgba(10, 6, 2, .82) 70%); animation: introFade 5.2s ease forwards; }
+.intro { position: absolute; inset: 0; z-index: 5; display: grid; place-items: center; background: radial-gradient(circle, rgba(255, 122, 26, .28) 0%, rgba(10, 6, 2, .82) 70%); animation: introFade 5.2s ease forwards; }
 @keyframes introFade { 0% { opacity: 0; } 8% { opacity: 1; } 82% { opacity: 1; } 100% { opacity: 0; } }
 .waves { position: absolute; width: 10px; height: 10px; }
 .waves i { position: absolute; left: 50%; top: 50%; width: 120px; height: 120px; margin: -60px; border: 4px solid var(--alert); border-radius: 50%; opacity: 0; animation: wave 2.4s cubic-bezier(.1, .6, .3, 1) infinite; }
@@ -111,14 +111,38 @@ body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: anti
 .intro-title { font-family: var(--title); font-size: 230px; font-weight: 700; line-height: .9; letter-spacing: .04em; text-shadow: 0 0 60px rgba(255, 122, 26, .7); }
 .intro-sub { font-size: 40px; font-weight: 600; margin-top: 10px; }
 
-/* ── Scène « En veille » ── */
-.veille { position: absolute; inset: 0; display: grid; place-items: center; background: var(--veille-bg); }
-.veille-card { width: 860px; padding: 56px 64px; text-align: center; }
-.veille-title { font-family: var(--title); font-size: 110px; font-weight: 700; line-height: 1; margin: 14px 0; animation: breathe 4s ease-in-out infinite; }
+/* ── Scènes plein écran : commence bientôt, pause, en veille, fin du stream ── */
+.scene { position: absolute; inset: 0; overflow: hidden; background: var(--veille-bg); display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.scene-waves { position: absolute; left: 50%; top: 44%; width: 10px; height: 10px; }
+.scene-waves i { position: absolute; left: 50%; top: 50%; width: 300px; height: 300px; margin: -150px; border: 2px solid var(--accent); border-radius: 50%; opacity: 0; animation: sceneWave 7.5s linear infinite; }
+.scene-waves i:nth-child(2) { animation-delay: 2.5s; }
+.scene-waves i:nth-child(3) { animation-delay: 5s; }
+@keyframes sceneWave { 0% { transform: scale(.3); opacity: .35; } 100% { transform: scale(6); opacity: 0; } }
+.scene-main { position: relative; text-align: center; max-width: 1500px; margin-top: -90px; }
+.scene-main .kicker { font-size: 22px; }
+.scene-title { font-family: var(--title); font-size: 150px; font-weight: 700; line-height: 1; margin: 22px 0 18px; letter-spacing: -.01em; }
+.scene[data-scene="veille"] .scene-title { animation: breathe 4s ease-in-out infinite; }
 @keyframes breathe { 50% { opacity: .55; } }
-.veille-who { font-size: 30px; font-weight: 600; }
-.veille-who .mono { color: var(--muted); margin-left: 10px; }
-.veille-text { font-size: 22px; color: var(--muted); line-height: 1.5; }
-.veille-info { margin-top: 26px; font-size: 20px; }
+.scene-who { font-size: 34px; font-weight: 600; }
+.scene-who .mono { color: var(--muted); margin-left: 12px; }
+.scene-text { font-size: 26px; color: var(--muted); line-height: 1.5; margin-top: 18px; }
+.scene-extra { margin-top: 34px; }
+.scene-count { font-family: var(--mono); font-size: 92px; font-weight: 700; }
+.scene-count small { font-size: 30px; color: var(--muted); font-weight: 500; margin: 0 14px 0 4px; }
+.scene-raid { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.scene-raid .chip { font-size: 24px; padding: 10px 20px; background: var(--track); color: var(--ink); }
+.scene-rank { margin-top: 30px; display: inline-grid; grid-template-columns: auto 1fr auto; gap: 8px 28px; font-size: 26px; text-align: left; padding: 22px 34px; }
+.scene-rank b { font-family: var(--mono); color: var(--muted); }
+.scene-rank span:last-child, .scene-rank .pts { font-family: var(--mono); text-align: right; }
+.scene-rank .me { color: var(--accent); font-weight: 700; }
+/* Bandeau du bas : jauge de l'escouade et streamers en live */
+.scene-bar { position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%); width: 1300px; padding: 18px 30px; display: grid; grid-template-columns: 1fr 1px 1.2fr; gap: 30px; align-items: center; }
+.scene-bar .sep { background: var(--glass-border); align-self: stretch; }
+.scene-bar .w-row { margin-top: 0; font-size: 18px; }
+.scene-bar .lives { font-size: 18px; color: var(--muted); }
+.scene-bar .lives b { color: var(--ink); font-weight: 600; }
+.scene-bar .dot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ff4d4f; margin-right: 8px; animation: blink 1.6s infinite; }
+/* Pendant une scène, l'alerte reste visible : panneau en bas à gauche, au-dessus du bandeau */
+.stack.over-scene { z-index: 2; bottom: 190px !important; top: auto !important; }
 
 .error { position: absolute; left: 40px; bottom: 40px; padding: 14px 20px; font-size: 16px; color: var(--alert); }

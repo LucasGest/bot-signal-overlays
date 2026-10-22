@@ -23,15 +23,17 @@
     </div>
   </div>
 
-  <!-- Scène « En veille » (pauses, sommeil) -->
-  <div id="veille" class="veille" hidden>
-    <div class="veille-card glass">
-      <div class="kicker">📡 La Community Event</div>
-      <div class="veille-title">En veille</div>
-      <div class="veille-who"><span id="veille-pseudo"></span> <span class="mono" id="veille-freq"></span></div>
-      <p class="veille-text">L'event continue sur les autres chaînes de l'escouade.<br>Le prochain Signal peut tomber à tout moment 👀</p>
-      <div id="veille-info" class="veille-info"></div>
+  <!-- Scènes plein écran : debut (commence bientôt), pause, veille (sommeil), fin (fin du stream) -->
+  <div id="scene" class="scene" hidden>
+    <div class="scene-waves"><i></i><i></i><i></i></div>
+    <div class="scene-main">
+      <div class="kicker" id="scene-kicker"></div>
+      <div class="scene-title" id="scene-title"></div>
+      <div class="scene-who" id="scene-who"></div>
+      <div class="scene-text" id="scene-text"></div>
+      <div class="scene-extra" id="scene-extra"></div>
     </div>
+    <div class="scene-bar glass" id="scene-bar"></div>
   </div>
 
   <!-- Coin permanent (F-41) + panneaux d'alerte, de vote et de fin -->

@@ -1,6 +1,9 @@
 // Overlay OBS du Bot Signal (F-40 à F-46).
 // Adresse : https://<site des overlays>/#cle=…  Options après le # (séparées par &) :
-//   scene=veille        scène « En veille » (pauses, sommeil)
+//   scene=debut         scène plein écran « Ça commence bientôt »
+//   scene=pause         scène plein écran « Petite pause »
+//   scene=veille        scène plein écran « En veille » (sommeil)
+//   scene=fin           scène plein écran « Fin du stream » (raid, classement)
 //   coin=bg|bd|hg|hd    coin du widget (bas-gauche par défaut)
 //   theme=clair         cartes claires (packs blancs / minimalistes)
 //   son=0               sans le son de l'alerte
@@ -11,7 +14,7 @@
   const params = new URLSearchParams(location.hash.slice(1));
   const opt = {
     cle: params.get('cle') || '',
-    scene: params.get('scene'),
+    scene: ['debut', 'pause', 'veille', 'fin'].includes(params.get('scene')) ? params.get('scene') : null,
     coin: ['bg', 'bd', 'hg', 'hd'].includes(params.get('coin')) ? params.get('coin') : 'bg',
     theme: params.get('theme') === 'clair' ? 'clair' : 'sombre',
     son: params.get('son') !== '0',
@@ -164,26 +167,80 @@
     el.querySelectorAll('[data-w]').forEach((bar) => { bar.style.width = `${Math.max(0, Math.min(100, Number(bar.dataset.w) || 0))}%`; });
   }
 
+  // ───────────── Scènes plein écran ─────────────
+  const SCENES = {
+    debut: (s) => ({
+      kicker: `📡 ${s.event.nom}`,
+      title: 'Ça commence bientôt',
+      text: s.event.etat === 'avant' ? "Lancement de l'event dans" : 'Installe-toi : le Signal peut tomber à tout moment 👀',
+      extra: s.event.etat === 'avant' && s.event.debut && s.event.debut > now() ? countdown(s.event.debut - now()) : '',
+    }),
+    pause: (s) => ({
+      kicker: `📡 ${s.event.nom}`,
+      title: 'Petite pause',
+      text: "Je reviens très vite ☕<br>Pendant ce temps, l'event continue sur les autres chaînes.",
+    }),
+    veille: (s) => ({
+      kicker: `📡 ${s.event.nom}`,
+      title: 'En veille',
+      text: "Le streamer recharge les batteries 😴<br>L'event continue sur les autres chaînes de l'escouade.",
+    }),
+    fin: (s) => {
+      const others = s.enLive.filter((x) => !x.moi);
+      const rank = s.classement.filter((x) => x.points > 0);
+      return {
+        kicker: `📡 ${s.event.nom}`,
+        title: 'Fin du stream',
+        text: `Merci d'être passé 💜${others.length ? "<br>L'aventure continue en live chez :" : ''}`,
+        extra: (others.length ? `<div class="scene-raid">${others.map((x) => `<span class="chip">${esc(x.pseudo)}</span>`).join('')}</div>` : '')
+          + (rank.length ? `<div class="scene-rank glass">${rank.map((x, i) => `<b>${i + 1}</b><span class="${x.moi ? 'me' : ''}">${esc(x.pseudo)}</span><span class="pts">${x.points} pts</span>`).join('')}</div>` : ''),
+      };
+    },
+  };
+
+  function countdown(ms) {
+    const days = Math.floor(ms / 86400000);
+    return `<div class="scene-count">${days ? `${days}<small>j</small>` : ''}${clock(ms % 86400000)}</div>`;
+  }
+
+  function sceneBar(s) {
+    const j = s.jauge;
+    const lives = s.enLive.map((x) => x.pseudo);
+    const gauge = j ? `<div><div class="w-row"><span>Jauge escouade ${esc(s.streamer.escouade)}</span><b>${j.points}/${j.seuil}</b></div>
+      <div class="bar${j.points >= j.seuil ? ' full' : ''}"><i data-w="${Math.round((j.points / j.seuil) * 100)}"></i></div></div>`
+      : `<div class="w-row"><span>Signaux</span><b>${s.signaux}</b></div>`;
+    const live = `<div class="lives"><span class="dot"></span>${lives.length ? `En live : <b>${esc(lives.join(' · '))}</b>` : 'Personne en live pour le moment'}</div>`;
+    return `${gauge}<div class="sep"></div>${live}`;
+  }
+
+  function renderScene(s) {
+    const sc = SCENES[opt.scene](s);
+    const el = $('scene');
+    el.hidden = false;
+    el.dataset.scene = opt.scene;
+    $('scene-kicker').textContent = sc.kicker;
+    $('scene-title').textContent = sc.title;
+    setHtml($('scene-who'), `${esc(s.streamer.pseudo)}${s.streamer.frequence ? `<span class="mono">${esc(s.streamer.frequence)} MHz</span>` : ''}`);
+    setHtml($('scene-text'), sc.text);
+    setHtml($('scene-extra'), sc.extra || '');
+    setHtml($('scene-bar'), sceneBar(s));
+    stack.classList.add('over-scene');
+  }
+
   function render() {
     const s = snap;
     if (!s) return;
-    if (opt.scene === 'veille') {
-      $('veille').hidden = false;
-      stack.hidden = true;
-      $('veille-pseudo').textContent = s.streamer.pseudo;
-      $('veille-freq').textContent = s.streamer.frequence ? `${s.streamer.frequence} MHz` : '';
-      const j = s.jauge;
-      setHtml($('veille-info'), s.event.etat === 'avant' ? `<div class="soon-count">${s.event.debut && s.event.debut > now() ? clock(s.event.debut - now()) : ''}</div>`
-        : j ? `<div class="w-row"><span>Jauge escouade ${esc(s.streamer.escouade)}</span><b>${j.points}/${j.seuil}</b></div><div class="bar"><i data-w="${Math.round((j.points / j.seuil) * 100)}"></i></div>` : '');
-      return;
-    }
+    if (opt.scene) renderScene(s);
     if (s.alerte?.concerne) intro(s.alerte);
+    // Sur une scène plein écran, le coin permanent est remplacé par le bandeau de la scène ;
+    // seule l'alerte (si elle concerne le streamer) reste affichée par-dessus.
     const w = $('widget');
-    w.hidden = false;
-    setHtml(w, widgetHtml(s));
+    w.hidden = Boolean(opt.scene);
+    if (!opt.scene) setHtml(w, widgetHtml(s));
     const p = $('panel');
     const panel = panelHtml(s);
     p.hidden = !panel;
+    if (opt.scene && panel && !s.alerte?.concerne) p.hidden = true;
     if (panel) {
       p.className = `panel glass ${panel[0]}`;
       setHtml(p, panel[1]);
@@ -205,7 +262,10 @@
     const base = (extra) => ({
       streamer: { pseudo: 'Lucanemone', frequence: '101.1', escouade: 'A' },
       live: true, event: { nom: 'La Community Event #2', etat: 'en cours', debut: null },
-      jauge: { points: 64, seuil: 100 }, signaux: 3, pause: null, alerte: null, fin: null, ...extra,
+      jauge: { points: 64, seuil: 100 }, signaux: 3, pause: null, alerte: null, fin: null,
+      enLive: [{ pseudo: 'Lucanemone', moi: true }, { pseudo: 'Biskar' }, { pseudo: 'Zeph Red Lion' }],
+      classement: [{ pseudo: 'Biskar', points: 14 }, { pseudo: 'Lucanemone', points: 11, moi: true }, { pseudo: 'Zeph Red Lion', points: 9 }, { pseudo: 'Master67', points: 6 }],
+      ...extra,
     });
     const joueurs = (arr) => [
       { pseudo: 'Lucanemone', moi: true, arrive: arr > 0, premier: arr > 0 },

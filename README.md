@@ -14,7 +14,8 @@ Site statique : aucun serveur, aucune donnée. Les infos en direct (alerte, jaug
 
 Chaque streamer reçoit **son** lien sur Discord avec `/overlay lien` (clé secrète après le `#`, jamais envoyée au serveur).
 
-Options à ajouter à la fin du lien : `&scene=veille` (scène « En veille ») · `&coin=bd` / `hg` / `hd` · `&theme=clair` · `&son=0`
+Scènes plein écran : `&scene=debut` (commence bientôt) · `&scene=pause` · `&scene=veille` (sommeil) · `&scene=fin` (fin du stream)
+Autres options · `&coin=bd` / `hg` / `hd` · `&theme=clair` · `&son=0`
 Aperçu sans clé, tous les écrans à la suite : `https://<site>/#demo` (ou `#demo=vote`, `alerte`, `partie`, `fin`, `bientot`…).
 
 ## Mise en ligne (Render, Static Site gratuit)
