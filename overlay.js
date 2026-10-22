@@ -120,12 +120,12 @@
     const j = s.jauge;
     const pct = j ? Math.round((j.points / j.seuil) * 100) : 0;
     const note = s.event.etat === 'termine' ? 'Event terminé · merci à tous 💜'
-      : s.pause ? `⏸ Escouade en pause jusqu'à ${hour(s.pause)}` : '';
+      : s.pause ? `⏸ Pause jusqu'à ${hour(s.pause)}` : '';
     return `<div class="w-top">
         <div><div class="kicker">Fréquence</div><div class="w-freq">${esc(s.streamer.frequence || '—')}<small>MHz</small></div></div>
         <div class="w-signals"><div class="kicker">Signaux</div><b>${s.signaux}</b></div>
       </div>
-      ${j ? `<div class="w-row"><span>Jauge escouade ${esc(s.streamer.escouade)}</span><b>${j.points}/${j.seuil}</b></div>
+      ${j ? `<div class="w-row"><span>Jauge de l'event</span><b>${j.points}/${j.seuil}</b></div>
       <div class="bar${pct >= 100 ? ' full' : ''}"><i data-w="${pct}"></i></div>` : ''}
       ${note ? `<div class="w-note">${esc(note)}</div>` : ''}`;
   }
@@ -152,7 +152,7 @@
       }
       if (a.phase === 'countdown') {
         const left = a.rejoindreAvant - now();
-        return ['alert', `<div class="p-kicker">${esc(a.libelle)}${a.escouade ? ` · escouade ${esc(a.escouade)}` : ''}</div>
+        return ['alert', `<div class="p-kicker">${esc(a.libelle)}</div>
           <div class="p-game">${esc(a.jeu)}</div>
           <div class="p-timer${left < 60000 ? ' urgent' : ''}">${clock(left)}</div>
           <div class="p-label">pour rejoindre le lobby</div>
@@ -166,7 +166,7 @@
         ${players(a.joueurs)}`];
     }
     if (a) {
-      return ['banner', `<span class="p-kicker"></span><span>Alerte en cours${a.escouade ? ` · escouade <b>${esc(a.escouade)}</b>` : ''}${a.jeu ? ` · <b>${esc(a.jeu)}</b>` : ''}</span>`];
+      return ['banner', `<span class="p-kicker"></span><span>Alerte en cours${a.jeu ? ` · <b>${esc(a.jeu)}</b>` : ''}</span>`];
     }
     if (s.fin) {
       const f = s.fin;
@@ -211,7 +211,7 @@
       badge: '🌙',
       kicker: s.event.nom,
       title: 'En veille',
-      text: "Le streamer recharge les batteries 😴<br>L'event continue sur les autres chaînes de l'escouade.",
+      text: "Le streamer recharge les batteries 😴<br>L'event continue sur les autres chaînes.",
     }),
     fin: (s) => {
       const others = s.enLive.filter((x) => !x.moi);
@@ -237,7 +237,7 @@
   function sceneBar(s) {
     const j = s.jauge;
     const lives = s.enLive.map((x) => x.pseudo);
-    const gauge = j ? `<div><div class="w-row"><span>Jauge escouade ${esc(s.streamer.escouade)}</span><b>${j.points}/${j.seuil}</b></div>
+    const gauge = j ? `<div><div class="w-row"><span>Jauge de l'event</span><b>${j.points}/${j.seuil}</b></div>
       <div class="bar${j.points >= j.seuil ? ' full' : ''}"><i data-w="${Math.round((j.points / j.seuil) * 100)}"></i></div></div>`
       : `<div class="w-row"><span>Signaux</span><b>${s.signaux}</b></div>`;
     const live = `<div class="lives"><span class="dot"></span>${lives.length ? `En live : <b>${esc(lives.join(' · '))}</b>` : 'Personne en live pour le moment'}</div>`;
@@ -252,12 +252,12 @@
   function tickerItems(s) {
     const items = [];
     const a = s.alerte;
-    if (a) items.push(`<b class="hot">⚡ ${esc(a.libelle)} en cours${a.escouade ? ` · escouade ${esc(a.escouade)}` : ''}${a.jeu ? ` · ${esc(a.jeu)}` : ''}</b>`);
+    if (a) items.push(`<b class="hot">⚡ ${esc(a.libelle)} en cours${a.jeu ? ` · ${esc(a.jeu)}` : ''}</b>`);
     items.push(`<b>${esc(s.event.nom)}</b>`);
     if (s.event.etat === 'avant' && s.event.debut) items.push(`Lancement ${esc(day(s.event.debut))}`);
     if (s.event.etat === 'termine') items.push('Event terminé · merci à tous 💜');
     if (s.streamer.frequence) items.push(`Fréquence de ${esc(s.streamer.pseudo)} : <b class="mono">${esc(s.streamer.frequence)} MHz</b>`);
-    if (s.jauge) items.push(`Jauge escouade ${esc(s.streamer.escouade)} : <b class="mono">${s.jauge.points}/${s.jauge.seuil}</b>`);
+    if (s.jauge) items.push(`Jauge de l'event : <b class="mono">${s.jauge.points}/${s.jauge.seuil}</b>`);
     const rank = s.classement.filter((x) => x.points > 0).slice(0, 3);
     if (rank.length) items.push(`🏆 ${rank.map((x, i) => `${i + 1}. <b>${esc(x.pseudo)}</b> ${x.points} pts`).join('  ')}`);
     const others = s.enLive.filter((x) => !x.moi);
@@ -431,7 +431,7 @@
   if (opt.demo) {
     const t0 = Date.now();
     const base = (extra) => ({
-      streamer: { pseudo: 'Lucanemone', frequence: '101.1', escouade: 'A' },
+      streamer: { pseudo: 'Lucanemone', frequence: '101.1' },
       live: true, event: { nom: 'La Community Event #2', etat: 'en cours', debut: null },
       jauge: { points: 64, seuil: 100 }, signaux: 3, pause: null, alerte: null, fin: null,
       enLive: [{ pseudo: 'Lucanemone', moi: true }, { pseudo: 'Biskar' }, { pseudo: 'Zeph Red Lion' }],
@@ -444,7 +444,7 @@
       { pseudo: 'Zeph Red Lion', arrive: arr > 2 },
       { pseudo: 'Master67', arrive: false, parti: arr > 3 },
     ];
-    const alerte = (extra) => ({ no: 1, type: 'aleatoire', libelle: 'Signal aléatoire', escouade: 'A', concerne: true, jeu: 'Valorant', prolongations: 0, ...extra });
+    const alerte = (extra) => ({ no: 1, type: 'aleatoire', libelle: 'Signal aléatoire', concerne: true, jeu: 'Valorant', prolongations: 0, ...extra });
     const SCENES = {
       bientot: () => base({ event: { nom: 'La Community Event #2', etat: 'avant', debut: t0 + 2 * 86400000 + 4 * 3600000 } }),
       widget: () => base(),
@@ -453,7 +453,7 @@
         vote: { options: [{ nom: 'Valorant', votes: 42 }, { nom: 'Fall Guys', votes: 57 }, { nom: 'Among Us', votes: 18 }], total: 117, finA: t0 + 95000 } }) }),
       partie: () => base({ alerte: alerte({ phase: 'playing', partieDebut: t0 - 42 * 60000, partieFin: t0 + 18 * 60000, prolongations: 1, joueurs: joueurs(3) }) }),
       fin: () => base({ fin: { no: 1, annulee: false, jeu: 'Valorant', joueurs: ['Lucanemone', 'Biskar', 'Zeph Red Lion'], points: 3, gages: ['Biskar'] } }),
-      autre: () => base({ alerte: { ...alerte({ escouade: 'B', concerne: false, jeu: 'Rocket League', phase: 'playing' }) } }),
+      autre: () => base({ alerte: { ...alerte({ concerne: false, jeu: 'Rocket League', phase: 'playing' }) } }),
     };
     const order = ['bientot', 'widget', 'alerte', 'vote', 'partie', 'fin', 'autre'];
     const fixed = params.get('demo');

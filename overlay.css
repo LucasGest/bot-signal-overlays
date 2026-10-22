@@ -169,7 +169,7 @@ body { font-family: var(--font); color: var(--ink); -webkit-font-smoothing: anti
 .scene-rank b { font-family: var(--mono); color: var(--muted); }
 .scene-rank .pts { font-family: var(--mono); text-align: right; }
 .scene-rank .me { color: var(--g3); font-weight: 700; }
-/* Bandeau du bas : jauge de l'escouade et streamers en live */
+/* Bandeau du bas : jauge de l'event et streamers en live */
 .scene-bar { position: absolute; left: 50%; bottom: 56px; transform: translateX(-50%); width: 1300px; padding: 18px 30px; display: grid; grid-template-columns: 1fr 1px 1.2fr; gap: 30px; align-items: center; }
 .scene-bar .sep { background: var(--glass-border); align-self: stretch; }
 .scene-bar .w-row { margin-top: 0; font-size: 18px; }
