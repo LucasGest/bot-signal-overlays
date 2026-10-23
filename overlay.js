@@ -13,6 +13,7 @@
 //   demo                aperçu sans clé : fait défiler tous les écrans (pour placer l'overlay dans OBS)
 //   cadre=pause         source à part : cadre de la webcam de la scène Pause (posé au-dessus de la webcam)
 //   chaine=nom         avec demo et scene=pause : affiche le vrai chat de cette chaîne
+//   notif=0             sans les alertes de la chaîne (subs, bits, raids, follows), si le streamer garde les siennes
 'use strict';
 
 (() => {
@@ -29,6 +30,7 @@
     chatExt: params.get('chat') === 'ext', // chat StreamElements posé par-dessus le panneau dans OBS
     demo: params.has('demo'),
     cadre: params.get('cadre') === 'pause',
+    notif: params.get('notif') !== '0',
   };
   // La clé reste dans l'adresse : le bouton « Actualiser » d'OBS recharge l'adresse courante
   // (elle n'apparaît jamais à l'écran dans OBS).
@@ -106,6 +108,102 @@
     playSignal();
     setTimeout(() => { el.hidden = true; }, 5200);
   }
+
+  // ───────────── Alertes de la chaîne : subs, subs offerts, bits, raids, follows ─────────────
+  // Le bot glisse les dernières dans l'état (champ « notifs », avec un id) : chaque id n'est montré
+  // qu'une fois. Une à la fois, en file ; en attente pendant l'animation plein écran d'un Signal.
+  const notifs = (() => {
+    const seen = new Set();
+    const queue = [];
+    const MAX_QUEUE = 12;
+    const MAX_AGE = 20_000; // alerte reçue en retard (page rechargée, reconnexion) : pas rejouée
+    let busy = false;
+    let primed = false;
+    const plural = (n, one, many) => `${n} ${n > 1 ? many : one}`;
+    const VIEW = {
+      sub: (n) => ({ icon: '⭐', kicker: 'Nouveau sub', line: n.nombre > 1 ? `Sub <b>Tier ${n.nombre}</b> · merci 💜` : 'Bienvenue dans la constellation ✦', ms: 7000 }),
+      resub: (n) => ({ icon: '🌟', kicker: 'Resub', line: `<b>${plural(n.nombre, 'mois', 'mois')}</b> dans la constellation ✦`, ms: 7500 }),
+      gift: (n) => ({ icon: '🎁', kicker: 'Subs offerts', line: `offre <b>${plural(n.nombre, 'sub', 'subs')}</b> à la commu !`, ms: 8000 }),
+      bits: (n) => ({ icon: '💎', kicker: 'Bits', line: `envoie <b>${plural(n.nombre, 'bit', 'bits')}</b>`, ms: 7000 }),
+      raid: (n) => ({ icon: '🚀', kicker: 'Raid', line: `débarque avec <b>${plural(n.nombre, 'viewer', 'viewers')}</b> !`, ms: 8500 }),
+      follow: () => ({ icon: '✦', kicker: 'Nouveau follow', line: '', ms: 4500 }),
+    };
+
+    function chime(type) {
+      if (!opt.son) return;
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const master = ctx.createGain();
+        master.gain.value = type === 'follow' ? 0.12 : 0.22;
+        master.connect(ctx.destination);
+        // Petit carillon montant (doux, rien à voir avec le « bip » radio du Signal)
+        const notes = type === 'follow' ? [988, 1319] : type === 'raid' ? [523, 659, 784, 1047, 1319] : [784, 988, 1175, 1568];
+        notes.forEach((f, i) => {
+          const t = ctx.currentTime + i * 0.09;
+          const o = ctx.createOscillator();
+          const g = ctx.createGain();
+          o.type = 'sine';
+          o.frequency.setValueAtTime(f, t);
+          g.gain.setValueAtTime(0, t);
+          g.gain.linearRampToValueAtTime(0.6, t + 0.015);
+          g.gain.exponentialRampToValueAtTime(0.001, t + 0.7);
+          o.connect(g).connect(master);
+          o.start(t);
+          o.stop(t + 0.75);
+        });
+        setTimeout(() => ctx.close(), 2000);
+      } catch { /* pas de son possible : la carte suffit */ }
+    }
+
+    function show(n) {
+      const v = VIEW[n.type](n);
+      const el = $('notif');
+      el.className = `notif glass ${n.type}`;
+      $('nt-icon').textContent = v.icon;
+      $('nt-kicker').textContent = v.kicker;
+      $('nt-who').textContent = n.qui; // pseudo et message affichés tels quels, jamais interprétés comme du HTML
+      $('nt-line').innerHTML = v.line; // texte fixe + nombres seulement
+      $('nt-msg').textContent = n.texte ? `« ${n.texte} »` : '';
+      $('nt-pts').textContent = n.points > 0 ? `+${n.points} pts jauge` : '';
+      el.hidden = false;
+      void el.offsetWidth; // relance l'animation d'entrée
+      el.classList.add('in');
+      chime(n.type);
+      setTimeout(() => {
+        el.classList.add('out');
+        setTimeout(() => { el.hidden = true; busy = false; next(); }, 450);
+      }, v.ms);
+    }
+
+    function next() {
+      if (busy || !queue.length) return;
+      if (!$('intro').hidden) return setTimeout(next, 500); // le Signal passe d'abord
+      busy = true;
+      show(queue.shift());
+    }
+
+    return {
+      /** Nouvelles alertes reçues dans l'état du bot. */
+      feed(list) {
+        if (!Array.isArray(list)) return; // bot pas encore à jour : rien à faire
+        for (const n of list) {
+          if (!n || seen.has(n.id) || !VIEW[n.type]) continue;
+          seen.add(n.id);
+          // Au chargement, ce qui est déjà là n'est pas rejoué.
+          if (!primed || (n.t && now() - n.t > MAX_AGE)) continue;
+          queue.push(n);
+        }
+        primed = true;
+        // Rafale (ex. bombe de subs) : les follows passent après, les plus vieux sautent.
+        while (queue.length > MAX_QUEUE) {
+          const i = queue.findIndex((x) => x.type === 'follow');
+          queue.splice(i >= 0 ? i : 0, 1);
+        }
+        next();
+      },
+      push(n) { queue.push(n); next(); }, // aperçu (#demo)
+    };
+  })();
 
   // ───────────── Rendu ─────────────
   function widgetHtml(s) {
@@ -434,6 +532,21 @@
     badge.className = 'demo-badge';
     badge.textContent = 'Aperçu de démonstration — pas ton overlay : utilise ton lien /overlay lien';
     document.body.append(badge);
+    document.body.classList.add('demo');
+    if (opt.notif && !opt.cadre) {
+      const fakeNotifs = [
+        { type: 'sub', qui: 'Kaori', nombre: 1, points: 5 },
+        { type: 'bits', qui: 'Nox', nombre: 500, texte: 'go le Signal !', points: 25 },
+        { type: 'follow', qui: 'Lucie_', points: 0 },
+        { type: 'gift', qui: 'Biskar', nombre: 5, points: 25 },
+        { type: 'resub', qui: 'Zeph', nombre: 14, texte: 'toujours là pour l\'event 💜', points: 5 },
+        { type: 'raid', qui: 'Master67', nombre: 42, points: 0 },
+      ];
+      let k = 0;
+      const fixedNotif = fakeNotifs.find((n) => n.type === params.get('notifdemo'));
+      setTimeout(() => notifs.push(fixedNotif ?? fakeNotifs[k++ % fakeNotifs.length]), 1500);
+      if (!fixedNotif) setInterval(() => notifs.push(fakeNotifs[k++ % fakeNotifs.length]), 11000);
+    }
     const t0 = Date.now();
     const base = (extra) => ({
       streamer: { pseudo: 'Ton pseudo', frequence: '000.0' },
@@ -498,6 +611,7 @@
       // Les intros des alertes déjà en cours au chargement de la page ne se rejouent pas.
       if (!snap && msg.alerte) seenIntro.add(`${msg.alerte.no}`);
       snap = msg;
+      if (opt.notif && !opt.cadre) notifs.feed(msg.notifs);
       $('error').hidden = true;
       stack.hidden = false;
       render();
