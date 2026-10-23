@@ -429,17 +429,22 @@
 
   // ───────────── Aperçu sans clé (#demo) ─────────────
   if (opt.demo) {
+    // Bien visible : ce n'est l'overlay de personne (évite de coller la démo dans OBS par erreur).
+    const badge = document.createElement('div');
+    badge.className = 'demo-badge';
+    badge.textContent = 'Aperçu de démonstration — pas ton overlay : utilise ton lien /overlay lien';
+    document.body.append(badge);
     const t0 = Date.now();
     const base = (extra) => ({
-      streamer: { pseudo: 'Lucanemone', frequence: '101.1' },
+      streamer: { pseudo: 'Ton pseudo', frequence: '000.0' },
       live: true, event: { nom: 'La Community Event #2', etat: 'en cours', debut: null },
       jauge: { points: 64, seuil: 100 }, signaux: 3, pause: null, alerte: null, fin: null,
-      enLive: [{ pseudo: 'Lucanemone', moi: true }, { pseudo: 'Biskar' }, { pseudo: 'Zeph Red Lion' }],
-      classement: [{ pseudo: 'Biskar', points: 14 }, { pseudo: 'Lucanemone', points: 11, moi: true }, { pseudo: 'Zeph Red Lion', points: 9 }, { pseudo: 'Master67', points: 6 }],
+      enLive: [{ pseudo: 'Ton pseudo', moi: true }, { pseudo: 'Biskar' }, { pseudo: 'Zeph Red Lion' }],
+      classement: [{ pseudo: 'Biskar', points: 14 }, { pseudo: 'Ton pseudo', points: 11, moi: true }, { pseudo: 'Zeph Red Lion', points: 9 }, { pseudo: 'Master67', points: 6 }],
       ...extra,
     });
     const joueurs = (arr) => [
-      { pseudo: 'Lucanemone', moi: true, arrive: arr > 0, premier: arr > 0 },
+      { pseudo: 'Ton pseudo', moi: true, arrive: arr > 0, premier: arr > 0 },
       { pseudo: 'Biskar', arrive: arr > 1 },
       { pseudo: 'Zeph Red Lion', arrive: arr > 2 },
       { pseudo: 'Master67', arrive: false, parti: arr > 3 },
@@ -452,7 +457,7 @@
       vote: () => base({ alerte: alerte({ no: 2, type: 'chat', libelle: 'Signal du chat', phase: 'vote', jeu: null, joueurs: joueurs(0),
         vote: { options: [{ nom: 'Valorant', votes: 42 }, { nom: 'Fall Guys', votes: 57 }, { nom: 'Among Us', votes: 18 }], total: 117, finA: t0 + 95000 } }) }),
       partie: () => base({ alerte: alerte({ phase: 'playing', partieDebut: t0 - 42 * 60000, partieFin: t0 + 18 * 60000, prolongations: 1, joueurs: joueurs(3) }) }),
-      fin: () => base({ fin: { no: 1, annulee: false, jeu: 'Valorant', joueurs: ['Lucanemone', 'Biskar', 'Zeph Red Lion'], points: 3, gages: ['Biskar'] } }),
+      fin: () => base({ fin: { no: 1, annulee: false, jeu: 'Valorant', joueurs: ['Ton pseudo', 'Biskar', 'Zeph Red Lion'], points: 3, gages: ['Biskar'] } }),
       autre: () => base({ alerte: { ...alerte({ concerne: false, jeu: 'Rocket League', phase: 'playing' }) } }),
     };
     const order = ['bientot', 'widget', 'alerte', 'vote', 'partie', 'fin', 'autre'];
