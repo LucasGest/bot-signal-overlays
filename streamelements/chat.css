@@ -17,7 +17,7 @@ body { font-family: 'Inter', system-ui, sans-serif; color: var(--ink); -webkit-f
 .ce-head .ce-title { color: var(--ink); }
 .ce-head .ce-event { margin-left: auto; color: var(--accent); }
 /* L'étoile du logo de l'event */
-.ce-mark { width: 1.5em; height: 1.5em; fill: #fff; filter: drop-shadow(0 0 4px var(--accent)); }
+.ce-mark { flex: none; width: 1.5em; height: 1.5em; fill: #fff; filter: drop-shadow(0 0 4px var(--accent)); }
 .ce-chat.sans-titre .ce-head { display: none; }
 
 .ce-list { list-style: none; margin: 0; padding: 0; flex: 1; min-height: 0; display: flex; flex-direction: column; justify-content: flex-end; gap: 8px; overflow: hidden;
