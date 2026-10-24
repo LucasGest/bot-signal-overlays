@@ -8,7 +8,7 @@ Site statique : aucun serveur, aucune donnée. Les infos en direct (alerte, jaug
 | `index.html` | La page (et sa politique de sécurité) |
 | `overlay.css` | Le style : cartes « verre dépoli », thème sombre ou clair |
 | `overlay.js` | Connexion au bot, comptes à rebours, animation et son des alertes, aperçu `#demo` |
-| `config.js` | Adresse du bot (`wss://bot-signal-tqps.onrender.com/overlay/ws`) |
+| `config.js` | Adresse du bot (`wss://bot-signal-3tzx.onrender.com/overlay/ws`) |
 | `installer.html`, `installer.js`, `installer.css` | Page « Installer dans OBS en 1 clic » |
 | `obs-installer.js` | Connexion au serveur WebSocket d'OBS (v5) et création des scènes / sources |
 
